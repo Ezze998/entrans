@@ -5,6 +5,7 @@ export default function Navbar() {
         <div className="text-2xl font-black tracking-tighter text-orange-500 uppercase font-headline">Entrans</div>
         <div className="hidden md:flex items-center gap-8">
           <a className="text-orange-500 font-bold border-b-2 border-orange-500 pb-1 font-headline tracking-tight" href="#">Events</a>
+          <a className="text-neutral-400 hover:text-white transition-colors font-headline tracking-tight" href="#">Category</a>
           <a className="text-neutral-400 hover:text-white transition-colors font-headline tracking-tight" href="#">Venues</a>
           <a className="text-neutral-400 hover:text-white transition-colors font-headline tracking-tight" href="#">Promoters</a>
         </div>
