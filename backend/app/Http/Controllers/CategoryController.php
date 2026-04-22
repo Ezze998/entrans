@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
@@ -12,7 +13,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return Category::with('events')->get();
+        $categories = Category::all();
+        return response()->json(['success' => true, 'data' => $categories]);
     }
 
     /**
@@ -28,7 +30,17 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'category_name' => 'required|string|max:255',
+        ]);
+
+        // Buat slug category dari category_name
+        $request->merge([
+            'slug' => Str::slug($request->category_name)
+        ]);
+
+        $category = Category::create($request->all());
+        return response()->json(['success' => true, 'data' => $category], 201);
     }
 
     /**
@@ -36,7 +48,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        return response()->json(['success' => true, 'data' => $category]);
     }
 
     /**
@@ -52,7 +64,18 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
-        //
+        $request->validate([
+            'category_name' => 'sometimes|required|string|max:255',
+        ]);
+
+        if ($request->has('category_name')) {
+            $request->merge([
+                'slug' => Str::slug($request->category_name)
+            ]);
+        }
+
+        $category->update($request->all());
+        return response()->json(['success' => true, 'data' => $category]);
     }
 
     /**
@@ -60,6 +83,7 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        $category->delete();
+        return response()->json(['success' => true, 'message' => 'Category deleted successfully']);
     }
 }
