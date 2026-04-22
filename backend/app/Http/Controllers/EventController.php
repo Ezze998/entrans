@@ -119,7 +119,26 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
-        //
+        dd($request->post());
+        $request->validate([
+            'category_id' => 'sometimes|exists:categories,id',
+            'title'       => 'sometimes|string|max:255',
+            'description' => 'sometimes',
+            'location'    => 'sometimes',
+            'event_date'  => 'sometimes|date',
+            'status'      => 'sometimes|in:draft,published,cancelled',
+            'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
+        ]);
+
+         // Handle Upload Image
+         if ($request->hasFile('image')) {
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+            $event->image = $request->file('image')->store('events', 'public');
+        }
+        $event->update($request->all());
+        return response()->json(['success' => true, 'data' => $event]);
     }
 
     /**
