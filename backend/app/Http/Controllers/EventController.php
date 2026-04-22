@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -12,7 +14,19 @@ class EventController extends Controller
      */
     public function index()
     {
-        return Event::with('category')->get();
+        $events = Event::with(['category', 'tickets'])->latest()->get();
+        
+        $events->map(function ($event) {
+            if ($event->image) {
+                $event->image = url('storage/' . $event->image);
+            }
+            return $event;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $events
+        ]);
     }
 
     /**
@@ -28,15 +42,68 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // 1. Validasi Input
+        $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'title'       => 'required|string|max:255',
+            'description' => 'required',
+            'location'    => 'required',
+            'event_date'  => 'required|date',
+            'status'      => 'nullable|in:draft,published,cancelled',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 2. Handle Upload Image
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('events', 'public');
+            }
+
+            // 3. Simpan Event
+            $event = Event::create([
+                'user_id'     => 1, 
+                'category_id' => $request->category_id,
+                'title'       => $request->title,
+                'description' => $request->description,
+                'location'    => $request->location,
+                'event_date'  => $request->event_date,
+                'image'       => $imagePath, 
+                'status'      => $request->status ?? 'published',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Event & Tickets created successfully',
+                'data'    => $event->load('tickets')
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Event $event)
+    public function show($id)
     {
-        //
+        $event = Event::with(['category', 'tickets'])->find($id);
+
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        if ($event->image) {
+            $event->image = url('storage/' . $event->image);
+        }
+
+        return response()->json(['success' => true, 'data' => $event]);
     }
 
     /**
@@ -60,6 +127,7 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        //
+        $event->delete();
+        return response()->json(['success' => true, 'message' => 'Event deleted successfully']);
     }
 }
