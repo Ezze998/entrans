@@ -49,12 +49,8 @@ class EventController extends Controller
             'description' => 'required',
             'location'    => 'required',
             'event_date'  => 'required|date',
-            'status'      => 'nullable|in:draft,published,cancelled',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
         ]);
-
-        try {
-            DB::beginTransaction();
 
             // 2. Handle Upload Image
             $imagePath = null;
@@ -71,21 +67,14 @@ class EventController extends Controller
                 'location'    => $request->location,
                 'event_date'  => $request->event_date,
                 'image'       => $imagePath, 
-                'status'      => $request->status ?? 'published',
+                'status'      => 'draft',
             ]);
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Event & Tickets created successfully',
-                'data'    => $event->load('tickets')
+                'message' => 'Event created as draft. Please add tickets and pay to publish.',
+                'data'    => $event
             ], 201);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
     }
 
     /**
