@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Ticket;
+use App\Services\MidtransService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -83,6 +84,17 @@ class OrderController extends Controller
             $order->update([
                 'total_amount' => $total
             ]);
+
+            // Buat objek MidtransService yang kita gunakan untuk mendapatkan snap_token
+            $midtrans = new MidtransService;
+            $snap = $midtrans->createSnapToken($order);
+
+            // Update informasi pembayaran pada order
+            $order->update([
+                'snap_token' => $snap['snap_token'],
+                'payment_url' => $snap['payment_url'],
+            
+            ]); 
 
             return response()->json([
                 'success' => true,
