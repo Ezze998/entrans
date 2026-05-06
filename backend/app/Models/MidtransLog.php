@@ -8,12 +8,13 @@ class MidtransLog extends Model
 {
     protected $fillable = [
         'order_id',
-        'payload',
+        'payload', 
         'full_response',
         'callback_status',
     ];
 
     protected $casts = [
         'payload' => 'array',
+        'full_response' => 'array', 
     ];
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Ticket;
@@ -14,10 +15,7 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        
-    }
+    public function index() {}
 
     /**
      * Show the form for creating a new resource.
@@ -44,12 +42,11 @@ class OrderController extends Controller
             $orderNumber = 'ENTR-' . time();
 
             // 2. Buat data Order baru (Status default 'pending' dari migration)
-            // Note: Karena belum ada Auth lunas, kita hardcode user_id: 1 sementara
             $order = Order::create([
-                'user_id'      => 1, // Ganti ke auth()->id() jika sudah ada login
+                'user_id'      => auth()->id(),
                 'event_id'     => $request->event_id,
                 'order_number' => $orderNumber,
-                'total_amount' => 0, // Akan diupdate setelah hitung total
+                'total_amount' => 0,
             ]);
 
             $total = 0;
@@ -59,12 +56,12 @@ class OrderController extends Controller
                 $ticket = Ticket::find($item['ticket_id']);
 
                 if ($ticket->stock < $item['quantity']) {
-                return response()->json([
-                'success' => false,
-                'message' => "Stok tiket {$ticket->ticket_type} tidak cukup. Sisa stok: {$ticket->stock}"
-                ], 400);
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Stok tiket {$ticket->ticket_type} tidak cukup. Sisa stok: {$ticket->stock}"
+                    ], 400);
                 }
-                
+
                 $subtotal = $ticket->price * $item['quantity'];
 
                 OrderDetail::create([
@@ -93,13 +90,13 @@ class OrderController extends Controller
             $order->update([
                 'snap_token' => $snap['snap_token'],
                 'payment_url' => $snap['payment_url'],
-            
-            ]); 
+
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Order created successfully',
-                'data'    => $order->load('event') 
+                'data'    => $order->load('event')
             ], 201);
         });
     }
@@ -206,5 +203,4 @@ class OrderController extends Controller
             'data'    => $order
         ]);
     }
-
 }

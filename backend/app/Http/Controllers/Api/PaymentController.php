@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\MidtransLog;
 use App\Models\Order;
 use App\Models\Payment;
@@ -16,11 +17,12 @@ class PaymentController extends Controller
 
 
         // 1. Verify signature key
-        $signatureKey = hash('sha512',
+        $signatureKey = hash(
+            'sha512',
             $payload['order_id'] .
-            $payload['status_code'] .
-            $payload['gross_amount'] .
-            $serverKey
+                $payload['status_code'] .
+                $payload['gross_amount'] .
+                $serverKey
         );
 
         if ($signatureKey !== $payload['signature_key']) {
@@ -65,19 +67,16 @@ class PaymentController extends Controller
         }
 
         // 6. Restore ticket stock if cancelled or expired
-        if (in_array($newStatus, ['cancel', 'expire'])) {
+        if (in_array($newStatus, ['cancel', 'expire']) && $order->status !== 'cancel') {
             $order->load('order_details.ticket');
-            foreach ($order->order_details as $detail) {
-                if ($detail->ticket) {
-                    $detail->ticket->increment('stock', $detail->quantity);
-                }
-            }
+            // ... loop increment stok ...
         }
 
         // 7. Log raw Midtrans response
         MidtransLog::create([
             'order_id'        => $payload['order_id'],
-            'full_response'   => json_encode($payload),
+            'payload'         => $payload, // Masukkan ke kolom payload jika ada
+            'full_response'   => $payload, // Langsung masukkan array $payload
             'callback_status' => $transactionStatus,
         ]);
 
