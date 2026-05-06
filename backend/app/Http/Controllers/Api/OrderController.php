@@ -9,6 +9,7 @@ use App\Models\Ticket;
 use App\Services\MidtransService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -43,7 +44,7 @@ class OrderController extends Controller
 
             // 2. Buat data Order baru (Status default 'pending' dari migration)
             $order = Order::create([
-                'user_id'      => auth()->id(),
+                'user_id'      => Auth::id(),
                 'event_id'     => $request->event_id,
                 'order_number' => $orderNumber,
                 'total_amount' => 0,
