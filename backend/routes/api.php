@@ -23,7 +23,7 @@ Route::apiResource('categories', CategoryController::class);
 Route::apiResource('tickets', TicketController::class);
 
 // Webhook
-Route::post('payment/notification', [PaymentController::class, 'notification']);
+Route::post('/payment/notification', [PaymentController::class, 'notification']);
 
 // Protected Routes (Wajib menyertakan Bearer Token)
 Route::middleware('auth:sanctum')->group(function () {

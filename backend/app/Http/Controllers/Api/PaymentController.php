@@ -75,7 +75,7 @@ class PaymentController extends Controller
         // 7. Log raw Midtrans response
         MidtransLog::create([
             'order_id'        => $payload['order_id'],
-            'payload'         => $payload, // Masukkan ke kolom payload jika ada
+            // 'payload'         => $payload, // Masukkan ke kolom payload jika ada
             'full_response'   => $payload, // Langsung masukkan array $payload
             'callback_status' => $transactionStatus,
         ]);
