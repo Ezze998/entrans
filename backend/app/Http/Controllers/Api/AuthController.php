@@ -13,20 +13,24 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
+        // 1. Tambahkan validasi role
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
+            'role'     => 'nullable|in:customer,organizer', // Hindari 'admin' didaftarkan sembarangan
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
+        // 2. Masukkan role ke dalam proses create
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role'     => $request->role ?? 'customer', // Jika tidak diisi di Postman/Frontend, otomatis jadi customer
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

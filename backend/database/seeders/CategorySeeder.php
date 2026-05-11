@@ -14,13 +14,14 @@ class CategorySeeder extends Seeder
 {
     $categories = [
         ['category_name' => 'Music', 'slug' => 'music'],
-        ['category_name' => 'Seminar', 'slug' => 'seminar'],
         ['category_name' => 'Workshop', 'slug' => 'workshop'],
-        ['category_name' => 'Sports', 'slug' => 'sports'],
     ];
 
-    foreach ($categories as $cat) {
-        \App\Models\Category::create($cat);
+    foreach ($categories as $category) {
+        \App\Models\Category::updateOrCreate(
+            ['slug' => $category['slug']], // Cek berdasarkan slug
+            ['category_name' => $category['category_name']] // Update jika ada, create jika tidak ada
+        );
     }
 }
 }
