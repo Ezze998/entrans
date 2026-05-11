@@ -11,6 +11,14 @@ class OrderDetail extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [
+        'order_id', 
+        'ticket_id',
+        'quantity',
+        'price',
+        'subtotal',
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);

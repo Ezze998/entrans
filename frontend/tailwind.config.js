@@ -1,27 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        "on-surface-variant": "#ddc1ae",
-        "secondary": "#fdb881",
-        "surface-container-low": "#1c1b1b",
-        "primary": "#ffb77d",
-        "primary-container": "#ff8c00",
-        "background": "#131313",
-        "on-surface": "#e5e2e1",
-        "surface-container-highest": "#353535",
-        // Kamu bisa tambah warna lain dari Stitch AI ke sini nanti
+        "primary": "#000000",
+        "secondary": "#4648d4",
+        "background": "#fbf9fa",
+        "surface": "#ffffff",
+        "on-surface": "#1b1c1d",
+        "on-surface-variant": "#45464d",
+        "outline-variant": "#c6c6cd",
+        "primary-container": "#131b2e",
+        "on-primary": "#ffffff",
+        "secondary-fixed": "#e1e0ff",
+        "on-secondary-fixed": "#07006c",
       },
       fontFamily: {
-        "headline": ["Plus Jakarta Sans", "sans-serif"],
-        "body": ["Inter", "sans-serif"],
-      }
+        sans: ['Inter', 'sans-serif'],
+      },
     },
   },
-  plugins: [],
+  plugins: [require('daisyui')],
 }
