@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { apiFetch } from '../utils/api'; 
-import type { User, UserRole } from '../types'; 
+import type { User } from '../types'; 
 
 export default function LoginPage() {
   const navigate = useNavigate();
