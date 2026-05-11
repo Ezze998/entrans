@@ -56,7 +56,7 @@ export default function PaymentStatusPage() {
   // Menentukan UI berdasarkan status transaksi
   // Status midtrans biasanya: settlement (lunas), pending, cancel, expire, deny
   const status = order.status || transactionStatus || 'pending';
-  const isSuccess = status === 'settlement' || status === 'capture';
+  const isSuccess = status === 'settlement';
   const isPending = status === 'pending';
 
   return (
