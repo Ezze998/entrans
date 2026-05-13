@@ -6,6 +6,7 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true', // Untuk bypass warning ngrok saat testing
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
