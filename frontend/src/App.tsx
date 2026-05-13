@@ -7,7 +7,6 @@ import RegisterPage from './pages/RegisterPage';
 import EventDetailPage from './pages/EventDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
-import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import OrganizerEventFormPage from './pages/OrganizerEventFormPage';
 import NotFoundPage from './pages/NotFoundPage';
