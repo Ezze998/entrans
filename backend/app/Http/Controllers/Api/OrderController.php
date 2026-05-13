@@ -16,11 +16,20 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index()
+    {
+        // Mengambil SEMUA order milik user yang sedang login dalam bentuk Array
+        $orders = Order::with(['event'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
 
-    /**
-     * Show the form for creating a new resource.
-     */
+        return response()->json([
+            'success' => true,
+            'data'    => $orders // Ini akan mengirimkan [ {...}, {...} ]
+        ]);
+    }
+
     public function create()
     {
         //
@@ -203,5 +212,23 @@ class OrderController extends Controller
             'message' => 'Order berhasil dibatalkan dan stok tiket telah dikembalikan',
             'data'    => $order
         ]);
+    }
+
+    public function callback(Request $request)
+    {
+        $serverKey = config('midtrans.server_key');
+        $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+
+        // Validasi apakah data benar-benar dari Midtrans
+        if ($hashed == $request->signature_key) {
+            if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
+                $order = Order::where('order_number', $request->order_id)->first();
+                if ($order) {
+                    $order->update(['status' => 'settlement']);
+                }
+            }
+        }
+
+        return response()->json(['status' => 'success']);
     }
 }

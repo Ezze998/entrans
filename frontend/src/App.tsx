@@ -11,6 +11,7 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
 import OrganizerEventFormPage from './pages/OrganizerEventFormPage';
 import NotFoundPage from './pages/NotFoundPage';
+import MyOrdersPage from './pages/MyOrdersPage';
 
 export default function App() {
   return (
@@ -24,7 +25,8 @@ export default function App() {
         {/* Halaman yang butuh login */}
         <Route path="/checkout" element={<ProtectedPage><CheckoutPage /></ProtectedPage>} />
         <Route path="/payment/status" element={<ProtectedPage><PaymentStatusPage /></ProtectedPage>} />
-        <Route path="/orders" element={<ProtectedPage><OrderHistoryPage /></ProtectedPage>} />
+        
+        <Route path="/orders" element={<ProtectedPage><MyOrdersPage /></ProtectedPage>} />
         
         {/* Halaman khusus organizer/admin */}
         <Route path="/organizer" element={<ProtectedPage requiredRole="organizer"><OrganizerDashboardPage /></ProtectedPage>} />

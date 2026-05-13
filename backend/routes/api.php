@@ -39,4 +39,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('orders/{id}', [OrderController::class, 'show']);
     Route::post('orders/{id}/process', [OrderController::class, 'processOrder']);
     Route::post('orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
+    Route::post('/midtrans-callback', [OrderController::class, 'callback']);
 });
