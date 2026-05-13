@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000/api'; // Sesuaikan dengan port Laravel kamu
+const BASE_URL = import.meta.env.VITE_API_BASE_URL + "/api"; // Sesuaikan dengan port Laravel kamu
 
 export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');

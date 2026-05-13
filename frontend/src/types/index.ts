@@ -32,7 +32,7 @@ export interface Event {
   tickets?: Ticket[]; // Daftar tiket untuk mencari harga terendah
 }
 
-export type OrderStatus = 'pending' | 'settlement' | 'expire' | 'cancel';
+export type OrderStatus = 'pending' | 'settlement' | 'expire' | 'cancel' | 'capture';
 
 export interface Order {
   id: number;
@@ -43,4 +43,12 @@ export interface Order {
   status: OrderStatus;
   payment_url: string;
   created_at: string;
+  event?: {
+    id: number;
+    title: string;
+    image: string;
+    location: string;
+    event_date: string;
+  };
+  order_details?: any[];
 }
