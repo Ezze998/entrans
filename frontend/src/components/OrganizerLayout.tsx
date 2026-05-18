@@ -1,5 +1,5 @@
 // src/components/OrganizerLayout.tsx
-import React from 'react';
+// import React from 'react';np
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 
 export default function OrganizerLayout() {
