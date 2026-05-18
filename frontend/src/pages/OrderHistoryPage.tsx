@@ -19,8 +19,8 @@ interface OrderReport {
   user_id: number;
   event_id: number;
   order_number: string;
-  total_amount: number; // Diubah ke total_amount
-  status: 'pending' | 'settlement' | 'cancel' | 'expire'; // Disesuaikan dengan status Midtrans
+  total_amount: number; 
+  status: 'pending' | 'settlement' | 'cancel' | 'expire'; 
   created_at: string;
   event?: {
     title: string;

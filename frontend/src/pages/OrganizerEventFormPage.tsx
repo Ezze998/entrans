@@ -141,8 +141,8 @@ export default function OrganizerEventFormPage() {
             method: 'POST',
             headers: { 
               'Accept': 'application/json',
-              'Authorization': `Bearer ${token}` 
-              // Catatan: Content-Type sengaja dikosongkan agar browser menyusun format FormData secara otomatis
+              'Authorization': `Bearer ${token}` ,
+              'ngrok-skip-browser-warning': 'true',
             },
             body: ticketForm
           });
