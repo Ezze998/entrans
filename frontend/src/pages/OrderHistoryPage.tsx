@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// Struktur Data Laporan Penjualan untuk Organizer
+// Struktur Data Laporan Penjualan untuk Organizer (Disesuaikan dengan Backend Laravel)
 interface OrderDetail {
   id: number;
   order_id: number;
   ticket_id: number;
   quantity: number;
-  price: string;
+  price: number;
+  subtotal: number;
   ticket?: {
-    name: string;
+    ticket_type: string; // Diubah ke ticket_type sesuai database Laravel
   };
 }
 
@@ -17,10 +18,10 @@ interface OrderReport {
   id: number;
   user_id: number;
   event_id: number;
-  total_price: string;
-  status: 'pending' | 'success' | 'failed' | 'cancelled';
+  order_number: string;
+  total_amount: number; // Diubah ke total_amount
+  status: 'pending' | 'settlement' | 'cancel' | 'expire'; // Disesuaikan dengan status Midtrans
   created_at: string;
-  buyer_name?: string; // Diambil dari join tabel users di backend
   event?: {
     title: string;
   };
@@ -35,7 +36,6 @@ export default function OrderHistoryPage() {
   useEffect(() => {
     const fetchSalesHistory = async () => {
       try {
-        // Hit ke endpoint khusus organizer untuk menarik riwayat transaksi masuk
         const response = await fetch('http://localhost:8000/api/organizer/orders', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -44,16 +44,14 @@ export default function OrderHistoryPage() {
         });
         const resData = await response.json();
         
-        // Sesuaikan dengan format kembalian API backend kamu
-        if (resData.success) {
+        if (response.ok && resData.success) {
           setSalesReports(resData.data);
         } else {
-          // Fallback dummy data jika backend belum selesai di-test
-          setSalesReports(dummyReports);
+          setSalesReports([]); // Kosongkan jika gagal
         }
       } catch (error) {
         console.error("Gagal memuat riwayat order organizer:", error);
-        setSalesReports(dummyReports); // Fallback agar UI tidak blank saat dev
+        setSalesReports([]); 
       } finally {
         setLoading(false);
       }
@@ -62,13 +60,13 @@ export default function OrderHistoryPage() {
     fetchSalesHistory();
   }, [token]);
 
-  // Hitung total ringkasan pendapatan dari tiket berstatus 'success'
+  // Hitung total ringkasan pendapatan dari tiket berstatus 'settlement' (Lunas)
   const totalRevenue = salesReports
-    .filter(order => order.status === 'success')
-    .reduce((sum, order) => sum + parseFloat(order.total_price), 0);
+    .filter(order => order.status === 'settlement')
+    .reduce((sum, order) => sum + Number(order.total_amount), 0);
 
   const totalTicketsSold = salesReports
-    .filter(order => order.status === 'success')
+    .filter(order => order.status === 'settlement')
     .reduce((sum, order) => sum + order.order_details.reduce((tSum, det) => tSum + det.quantity, 0), 0);
 
   return (
@@ -99,7 +97,7 @@ export default function OrderHistoryPage() {
         {/* CARD RINGKASAN (STATISTIK) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
-            <span className="text-sm font-semibold text-gray-400 uppercase">Total Tiket Terjual (Sukses)</span>
+            <span className="text-sm font-semibold text-gray-400 uppercase">Total Tiket Terjual (Lunas)</span>
             <span className="text-3xl font-black text-slate-800 mt-2">{totalTicketsSold} <span className="text-sm font-normal text-gray-500">Tiket</span></span>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
@@ -123,35 +121,35 @@ export default function OrderHistoryPage() {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50 border-b border-gray-200 text-slate-600 text-sm font-semibold uppercase">
                   <tr>
-                    <th className="p-4">ID Order</th>
+                    <th className="p-4">Nomor Order</th>
                     <th className="p-4">Event</th>
                     <th className="p-4">Rincian Tiket</th>
                     <th className="p-4">Total Bayar</th>
-                    <th className="p-4">Status Midtrans</th>
+                    <th className="p-4">Status</th>
                     <th className="p-4">Tanggal Order</th>
                   </tr>
                 </thead>
                 <tbody className="text-slate-700 divide-y divide-gray-100 text-sm">
                   {salesReports.map((report) => (
                     <tr key={report.id} className="hover:bg-slate-50 transition">
-                      <td className="p-4 font-mono font-bold text-blue-600">#{report.id}</td>
+                      <td className="p-4 font-mono font-bold text-blue-600">{report.order_number}</td>
                       <td className="p-4">
                         <div className="font-bold text-slate-800">{report.event?.title || "Event Tidak Diketahui"}</div>
-                        <div className="text-xs text-gray-400">Buyer ID: {report.user_id}</div>
+                        <div className="text-xs text-gray-400">ID Pembeli: {report.user_id}</div>
                       </td>
                       <td className="p-4">
                         {report.order_details.map((detail) => (
                           <div key={detail.id} className="font-medium">
-                            {detail.ticket?.name || "Tiket"} x{detail.quantity}
+                            {detail.ticket?.ticket_type || "Tiket"} x{detail.quantity}
                           </div>
                         ))}
                       </td>
                       <td className="p-4 font-semibold text-slate-900">
-                        Rp {parseFloat(report.total_price).toLocaleString('id-ID')}
+                        Rp {Number(report.total_amount).toLocaleString('id-ID')}
                       </td>
                       <td className="p-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                          report.status === 'success' ? 'bg-green-100 text-green-800' :
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                          report.status === 'settlement' ? 'bg-green-100 text-green-800' :
                           report.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {report.status}
@@ -171,31 +169,3 @@ export default function OrderHistoryPage() {
     </div>
   );
 }
-
-// DATA DUMMY (Akan otomatis terganti jika API Backend kamu aktif & sukses merespons data)
-const dummyReports: OrderReport[] = [
-  {
-    id: 1024,
-    user_id: 5,
-    event_id: 1,
-    total_price: "300000",
-    status: "success",
-    created_at: "2026-05-15T14:20:00.000Z",
-    event: { title: "Glow In The Dark Festival" },
-    order_details: [
-      { id: 1, order_id: 1024, ticket_id: 2, quantity: 2, price: "150000", ticket: { name: "Regular Pass" } }
-    ]
-  },
-  {
-    id: 1025,
-    user_id: 8,
-    event_id: 1,
-    total_price: "500000",
-    status: "pending",
-    created_at: "2026-05-17T09:05:00.000Z",
-    event: { title: "Glow In The Dark Festival" },
-    order_details: [
-      { id: 2, order_id: 1025, ticket_id: 3, quantity: 1, price: "500000", ticket: { name: "VIP Experience" } }
-    ]
-  }
-];

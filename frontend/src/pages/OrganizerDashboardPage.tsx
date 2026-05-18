@@ -17,19 +17,19 @@ interface EventData {
   category?: {
     id: number;
     name?: string;
-    category_name?: string; // Tambahan toleransi penamaan field kategori dari backend
+    category_name?: string; 
   };
 }
 
 interface SummaryData {
   total_orders: number;
-  total_settlement: number;
+  total_revenue: number; // ✨ Diselaraskan dengan Backend (total_revenue)
   total_cancelled: number;
 }
 
 export default function OrganizerDashboardPage() {
   const [events, setEvents] = useState<EventData[]>([]);
-  const [summary, setSummary] = useState<SummaryData>({ total_orders: 0, total_settlement: 0, total_cancelled: 0 });
+  const [summary, setSummary] = useState<SummaryData>({ total_orders: 0, total_revenue: 0, total_cancelled: 0 });
   const [loading, setLoading] = useState<boolean>(true);
 
   const token = localStorage.getItem('token');
@@ -37,18 +37,18 @@ export default function OrganizerDashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        // ✨ Perbaikan: Mengubah VITE_API_BASE_URL menjadi URL localhost agar tidak error
         const [eventsRes, summaryRes] = await Promise.all([
-          fetch('http://localhost:8000/api/organizer/events', {
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
           }).catch(() => null),
-          fetch('http://localhost:8000/api/organizer/summary', {
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/summary`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
           }).catch(() => null)
         ]);
 
         if (eventsRes && eventsRes.ok) {
           const eventsData = await eventsRes.json();
-          // Perbaikan Utama: Dibuat fleksibel mengikuti arsitektur response API Laravel Anda
           if (eventsData && Array.isArray(eventsData.data)) {
             setEvents(eventsData.data);
           } else if (eventsData && eventsData.success && Array.isArray(eventsData.data)) {
@@ -68,12 +68,8 @@ export default function OrganizerDashboardPage() {
             setSummary(summaryDataRes);
           }
         } else {
-          // Dummy data fallback jika endpoint /summary dari pengajar belum siap di backend
-          setSummary({
-            total_orders: 142,
-            total_settlement: 24500000,
-            total_cancelled: 1500000
-          });
+          // Fallback ke 0 jika gagal mengambil data
+          setSummary({ total_orders: 0, total_revenue: 0, total_cancelled: 0 });
         }
       } catch (error) {
         console.error("Gagal mengambil data dashboard:", error);
@@ -89,7 +85,7 @@ export default function OrganizerDashboardPage() {
     if (!window.confirm("Apakah Anda yakin ingin menghapus event ini?")) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/organizer/events/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
@@ -120,12 +116,13 @@ export default function OrganizerDashboardPage() {
           </span>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Settlement</span>
-          <span className="text-3xl font-black text-green-600">{formatRp(summary.total_settlement)}</span>
+          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Pendapatan</span>
+          {/* ✨ Perbaikan: Memanggil data total_revenue */}
+          <span className="text-3xl font-black text-green-600">{formatRp(summary.total_revenue)}</span>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Canceled</span>
-          <span className="text-3xl font-black text-red-500">{formatRp(summary.total_cancelled)}</span>
+          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Tiket Dibatalkan</span>
+          <span className="text-3xl font-black text-red-500">{summary.total_cancelled} <span className="text-sm font-medium text-gray-400">Orders</span></span>
         </div>
       </div>
 

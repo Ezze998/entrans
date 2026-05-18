@@ -246,4 +246,45 @@ class OrderController extends Controller
             'data'    => $orders
         ]);
     }
+
+    public function summary()
+    {
+        $organizerId = Auth::id();
+
+        $summary = Order::whereHas('event', function ($query) use ($organizerId) {
+            $query->where('user_id', $organizerId);
+        })
+            ->select(
+                DB::raw("COUNT(CASE WHEN status = 'settlement' THEN 1 END) as total_orders"),
+                DB::raw("SUM(CASE WHEN status = 'settlement' THEN total_amount ELSE 0 END) as total_revenue"),
+                DB::raw("COUNT(CASE WHEN status = 'cancel' THEN 1 END) as total_cancelled")
+            )
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_orders'    => (int) $summary->total_orders,
+                'total_revenue'   => (int) $summary->total_revenue,
+                'total_cancelled' => (int) $summary->total_cancelled,
+            ]
+        ]);
+    }
+
+    public function organizerOrders()
+    {
+        $organizerId = Auth::id();
+
+        $orders = Order::with(['event', 'order_details.ticket'])
+            ->whereHas('event', function ($query) use ($organizerId) {
+                $query->where('user_id', $organizerId);
+            })
+            ->latest() 
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders
+        ]);
+    }
 }

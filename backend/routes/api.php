@@ -29,8 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ✨ TAMBAHAN: Endpoint Khusus Dashboard Organizer (Wajib di atas apiResource)
+    Route::get('organizer/summary', [OrderController::class, 'summary']);
     Route::get('organizer/events', [EventController::class, 'organizerEvents']);
     Route::get('organizer/tickets', [TicketController::class, 'organizerTickets']);
+    Route::get('organizer/orders', [OrderController::class, 'organizerOrders']);
 
     Route::apiResource('events', EventController::class)->except(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
