@@ -51,12 +51,12 @@ export default function EventDetailPage() {
     }
 
     // Mengirim data ke route /checkout melalui state
-    navigate('/checkout', { 
-      state: { 
-        event, 
-        selectedTickets: selected, 
-        total: calculateTotal() 
-      } 
+    navigate('/checkout', {
+      state: {
+        event,
+        selectedTickets: selected,
+        total: calculateTotal()
+      }
     });
   };
 
@@ -65,7 +65,7 @@ export default function EventDetailPage() {
       <span className="loading loading-spinner loading-lg"></span>
     </div>
   );
-  
+
   if (!event) return <div className="text-center py-20">Event tidak ditemukan.</div>;
 
   return (
@@ -132,16 +132,41 @@ export default function EventDetailPage() {
                       <h4 className="font-bold text-black">{ticket.ticket_type}</h4>
                       <span className="font-black text-lg text-black">{formatRupiah(ticket.price)}</span>
                     </div>
-                    <p className="text-[12px] text-gray-400 font-medium mb-4">Standard entry for 1 person.</p>
+
+                    {/* TAMPILKAN STOK DI SINI */}
+                    <p className="text-[12px] text-gray-500 font-medium mb-4">
+                      Sisa Kuota: <span className="text-black font-bold">{ticket.stock} tiket</span>
+                    </p>
 
                     <div className="flex justify-between items-center">
                       <span className="text-[12px] text-[#0F172A] font-bold flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">check_circle</span> Available
+                        {ticket.stock > 0 ? (
+                          <>
+                            <span className="material-symbols-outlined text-sm text-green-500">check_circle</span>
+                            Available
+                          </>
+                        ) : (
+                          <>
+                            <span className="material-symbols-outlined text-sm text-red-500">cancel</span>
+                            Sold Out
+                          </>
+                        )}
                       </span>
+
                       <div className="flex items-center border border-gray-100 rounded-lg bg-gray-50">
-                        <button onClick={() => updateQty(ticket.id, -1)} className="px-3 py-1 font-bold text-gray-500 hover:text-black">-</button>
+                        <button
+                          onClick={() => updateQty(ticket.id, -1)}
+                          className="px-3 py-1 font-bold text-gray-500 hover:text-black"
+                        >-</button>
+
                         <span className="px-3 py-1 font-bold text-black">{quantities[ticket.id] || 0}</span>
-                        <button onClick={() => updateQty(ticket.id, 1)} className="px-3 py-1 font-bold text-gray-500 hover:text-black">+</button>
+
+                        <button
+                          onClick={() => updateQty(ticket.id, 1)}
+                          // CEGAH PEMBELIAN MELEBIHI STOK
+                          disabled={(quantities[ticket.id] || 0) >= ticket.stock}
+                          className={`px-3 py-1 font-bold ${(quantities[ticket.id] || 0) >= ticket.stock ? 'text-gray-300' : 'text-gray-500 hover:text-black'}`}
+                        >+</button>
                       </div>
                     </div>
                   </div>
@@ -154,7 +179,7 @@ export default function EventDetailPage() {
                   <span className="text-3xl font-black text-black">{formatRupiah(calculateTotal())}</span>
                 </div>
                 {/* PERBAIKAN: Menambahkan onClick={handleCheckout} */}
-                <button 
+                <button
                   onClick={handleCheckout}
                   className="w-full bg-[#0F172A] text-white py-4 rounded-xl font-bold hover:bg-black active:scale-[0.98] transition-all shadow-lg shadow-gray-200"
                 >

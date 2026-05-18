@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
@@ -15,8 +16,8 @@ class EventController extends Controller
      */
     public function index()
     {
-        $events = Event::with(['category', 'tickets'])->latest()->get();
-        
+        $events = Event::with(['category', 'tickets', 'user'])->latest()->get();
+
         $events->map(function ($event) {
             if ($event->image) {
                 $event->image = url('storage/' . $event->image);
@@ -43,39 +44,36 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title'       => 'required|string|max:255',
             'description' => 'required',
             'location'    => 'required',
             'event_date'  => 'required|date',
-            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-            // 2. Handle Upload Image
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('events', 'public');
-            }
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('events', 'public');
+        }
 
-            // 3. Simpan Event
-            $event = Event::create([
-                'user_id'     => 1, 
-                'category_id' => $request->category_id,
-                'title'       => $request->title,
-                'description' => $request->description,
-                'location'    => $request->location,
-                'event_date'  => $request->event_date,
-                'image'       => $imagePath, 
-                'status'      => 'draft',
-            ]);
+        $event = Event::create([
+            'user_id'     => Auth::id(), // UBAH INI: Agar ID pengirim otomatis tercatat
+            'category_id' => $request->category_id,
+            'title'       => $request->title,
+            'description' => $request->description,
+            'location'    => $request->location,
+            'event_date'  => $request->event_date,
+            'image'       => $imagePath,
+            'status'      => $request->status ?? 'draft', // Default ke draft jika tidak diisi
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Event created as draft. Please add tickets and pay to publish.',
-                'data'    => $event
-            ], 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Event created as draft.',
+            'data'    => $event
+        ], 201);
     }
 
     /**
@@ -83,7 +81,7 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        $event = Event::with(['category', 'tickets'])->find($id);
+        $event = Event::with(['category', 'tickets', 'user'])->find($id);
 
         if (!$event) {
             return response()->json(['message' => 'Event not found'], 404);
@@ -119,8 +117,8 @@ class EventController extends Controller
             'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
         ]);
 
-         // Handle Upload Image
-         if ($request->hasFile('image')) {
+        // Handle Upload Image
+        if ($request->hasFile('image')) {
             if ($event->image) {
                 Storage::disk('public')->delete($event->image);
             }

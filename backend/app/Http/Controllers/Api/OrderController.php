@@ -116,7 +116,10 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = Order::with(['event', 'order_details.ticket'])->find($id);
+        $order = Order::with(['event', 'order_details.ticket'])
+            ->where('id', $id)
+            ->orWhere('order_number', $id)
+            ->first();
 
         if (!$order) {
             return response()->json([
@@ -230,5 +233,17 @@ class OrderController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+    public function getUserOrders()
+    {
+        $orders = Order::with(['event'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $orders
+        ]);
     }
 }

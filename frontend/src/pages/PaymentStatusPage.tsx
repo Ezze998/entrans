@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { formatRupiah, formatDate } from '../utils/format';
 import { apiFetch } from '../utils/api';
-import type { Order } from '../types'; // Pastikan ada tipe Order di types/index.ts
+import type { Order } from '../types'; 
 
 export default function PaymentStatusPage() {
   const [searchParams] = useSearchParams();

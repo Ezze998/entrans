@@ -18,6 +18,7 @@ export interface Ticket {
   event_id: number;
   ticket_type: string; 
   price: number;
+  stock: number;
 }
 
 export interface Event {
