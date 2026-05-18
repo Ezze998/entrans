@@ -40,6 +40,7 @@ export default function OrderHistoryPage() {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
           }
         });
         const resData = await response.json();

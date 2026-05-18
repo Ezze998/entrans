@@ -29,8 +29,8 @@ export interface Event {
   event_date: string;
   category_id: number;
   category?: Category;
-  user?: User; // Orang yang memposting event
-  tickets?: Ticket[]; // Daftar tiket untuk mencari harga terendah
+  user?: User; 
+  tickets?: Ticket[]; 
 }
 
 export type OrderStatus = 'pending' | 'settlement' | 'expire' | 'cancel' | 'capture';
