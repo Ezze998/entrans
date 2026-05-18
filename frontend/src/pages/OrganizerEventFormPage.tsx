@@ -32,7 +32,7 @@ export default function OrganizerEventFormPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/categories');
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`);
         if (res.ok) {
           const resData = await res.json();
           if (resData && Array.isArray(resData.data)) {
@@ -52,7 +52,7 @@ export default function OrganizerEventFormPage() {
     if (isEditMode && id && id !== 'undefined') {
       const fetchOldEventData = async () => {
         try {
-          const res = await fetch(`http://localhost:8000/api/events/${id}`);
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`);
           if (res.ok) {
             const resData = await res.json();
             if (resData && resData.success && resData.data) {
@@ -111,8 +111,8 @@ export default function OrganizerEventFormPage() {
     }
 
     const url = isEditMode 
-      ? `http://localhost:8000/api/events/${id}` 
-      : 'http://localhost:8000/api/events';
+      ? `${import.meta.env.VITE_API_BASE_URL}/api/events/${id}` 
+      : `${import.meta.env.VITE_API_BASE_URL}/api/events`;
 
     try {
       const response = await fetch(url, {
@@ -137,7 +137,7 @@ export default function OrganizerEventFormPage() {
           ticketForm.append('price', formData.ticket_price);
           ticketForm.append('quantity', formData.ticket_quantity);
 
-          const ticketResponse = await fetch('http://localhost:8000/api/tickets', {
+          const ticketResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/tickets`, {
             method: 'POST',
             headers: { 
               'Accept': 'application/json',

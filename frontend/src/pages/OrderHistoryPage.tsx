@@ -36,7 +36,7 @@ export default function OrderHistoryPage() {
   useEffect(() => {
     const fetchSalesHistory = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/organizer/orders', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/orders`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
