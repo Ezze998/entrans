@@ -32,7 +32,13 @@ export default function OrganizerEventFormPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          }
+        });
         if (res.ok) {
           const resData = await res.json();
           if (resData && Array.isArray(resData.data)) {
