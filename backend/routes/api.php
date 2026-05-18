@@ -9,32 +9,34 @@ use App\Http\Controllers\Api\TicketController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-// Public Routes (Tidak perlu login)
+// ==================== ROUTE PUBLIK (BUYER) ====================
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
-Route::post('logout', [AuthController::class, 'logout']);
-Route::apiResource('events', EventController::class);
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('tickets', TicketController::class);
 
-// Webhook
+Route::apiResource('events', EventController::class)->only(['index', 'show']);
+Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('tickets', TicketController::class)->only(['index', 'show']);
+
+// Webhook Midtrans
 Route::post('/payment/notification', [PaymentController::class, 'notification']);
 
-// Protected Routes (Wajib menyertakan Bearer Token)
+// ==================== ROUTE PROTECTED (ORGANIZER & CUSTOMER LOGGED IN) ====================
 Route::middleware('auth:sanctum')->group(function () {
     
     Route::post('logout', [AuthController::class, 'logout']);
-
-    // Endpoint untuk mendapatkan data user yang sedang login
     Route::get('user', function (Request $request) {
         return response()->json(['success' => true, 'data' => $request->user()]);
     });
 
-    // Orders (Hanya user login yang bisa buat dan lihat order)
+    // ✨ TAMBAHAN: Endpoint Khusus Dashboard Organizer (Wajib di atas apiResource)
+    Route::get('organizer/events', [EventController::class, 'organizerEvents']);
+    Route::get('organizer/tickets', [TicketController::class, 'organizerTickets']);
+
+    Route::apiResource('events', EventController::class)->except(['index', 'show']);
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+    Route::apiResource('tickets', TicketController::class)->except(['index', 'show']);
+
+    // Orders 
     Route::post('orders', [OrderController::class, 'store']);
     Route::get('orders/{id}', [OrderController::class, 'show']);
     Route::get('orders', [OrderController::class, 'getUserOrders']);

@@ -12,26 +12,64 @@ interface EventItem {
 
 export default function OrganizerEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const token = localStorage.getItem('token');
+
+  // Fungsi untuk memuat ulang daftar event dari API
+  const fetchEvents = async () => {
+    try {
+      // 💥 PERUBAHAN DISINI: diarahkan ke endpoint khusus organizer
+      const res = await fetch('http://localhost:8000/api/organizer/events', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && Array.isArray(resData.data)) {
+          setEvents(resData.data);
+        } else if (Array.isArray(resData)) {
+          setEvents(resData);
+        }
+      }
+    } catch (e) {
+      console.error("Gagal mengambil daftar event:", e);
+    }
+  };
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // Disesuaikan dengan routes/api.php Anda (Rute Publik)
-        const res = await fetch('http://localhost:8000/api/events');
-        if (res.ok) {
-          const resData = await res.json();
-          if (resData && Array.isArray(resData.data)) {
-            setEvents(resData.data);
-          } else if (Array.isArray(resData)) {
-            setEvents(resData);
-          }
-        }
-      } catch (e) {
-        console.error("Gagal mengambil daftar event:", e);
-      }
-    };
     fetchEvents();
   }, []);
+
+  // Fungsi Handler untuk menghapus Event berdasarkan ID
+  const handleDelete = async (id: number, title: string) => {
+    const isConfirmed = window.confirm(`Apakah Anda yakin ingin menghapus event "${title}"? Tindakan ini tidak dapat dibatalkan.`);
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/events/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      const resData = await res.json();
+
+      if (res.ok || resData.success) {
+        alert("Event berhasil dihapus!");
+        // Perbarui state lokal agar baris data langsung hilang dari tabel tanpa harus reload halaman penuh
+        setEvents(prevEvents => prevEvents.filter(ev => ev.id !== id));
+      } else {
+        alert("Gagal menghapus data: " + (resData.message || JSON.stringify(resData.errors)));
+      }
+    } catch (error) {
+      console.error("Error saat menghapus event:", error);
+      alert("Terjadi kegagalan koneksi sistem backend saat mencoba menghapus data.");
+    }
+  };
 
   return (
     <div className="p-6 bg-white rounded-xl shadow border font-sans">
@@ -53,7 +91,7 @@ export default function OrganizerEventsPage() {
               <th className="px-6 py-3 font-bold">Lokasi</th>
               <th className="px-6 py-3 font-bold">Tanggal</th>
               <th className="px-6 py-3 font-bold">Status</th>
-              <th className="px-6 py-3 font-bold">Aksi</th>
+              <th className="px-6 py-3 font-bold text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -65,16 +103,23 @@ export default function OrganizerEventsPage() {
                   {ev.event_date ? ev.event_date.substring(0, 16).replace('T', ' ') : '-'}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                    ev.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${ev.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
                     {ev.status}
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <Link to={`/organizer/events/${ev.id}/edit`} className="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
-                    Edit Data
-                  </Link>
+                  <div className="flex items-center justify-center gap-4">
+                    <Link to={`/organizer/events/${ev.id}/edit`} className="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                      Edit Data
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(ev.id, ev.title)}
+                      className="text-red-600 hover:text-red-800 font-semibold hover:underline bg-transparent border-none cursor-pointer"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </td>
               </tr>
             )) : (

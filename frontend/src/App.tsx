@@ -1,7 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedPage from './components/ProtectedPage';
-import OrganizerLayout from './components/OrganizerLayout'; 
+import OrganizerLayout from './components/OrganizerLayout';
 
 import HomePage from './pages/HomePage';
 import EventsPage from './pages/EventsPage';
@@ -19,6 +19,8 @@ import AboutPage from './pages/About';
 import VenuesPage from './pages/VenuesPage';
 import ScrollToTop from './components/ScrollToTop';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrganizerTicketsPage from './pages/OrganizerTicketsPage';
+import OrganizerTicketFormPage from './pages/OrganizerTicketsFormPage';
 
 const TempTicketsPage = () => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm font-bold text-slate-800">
@@ -46,8 +48,8 @@ export default function App() {
         <Route path="/orders" element={<ProtectedPage><MyOrdersPage /></ProtectedPage>} />
 
         {/* --- RUTE KHUSUS ORGANIZER --- */}
-        <Route 
-          path="/organizer" 
+        <Route
+          path="/organizer"
           element={
             <ProtectedPage requiredRole="organizer">
               <OrganizerLayout />
@@ -56,23 +58,26 @@ export default function App() {
         >
           {/* path="/organizer" (Hanya Ringkasan Pendapatan & Grafik Utama) */}
           <Route index element={<OrganizerDashboardPage />} />
-          
+
+          <Route path="/organizer/tickets" element={<OrganizerTicketsPage />} />
+          <Route path="/organizer/tickets/new" element={<OrganizerTicketFormPage />} />
+
           {/* path="/organizer/events" (PERBAIKAN: Menggunakan komponen khusus daftar tabel) */}
           <Route path="events" element={<OrganizerEventsPage />} />
-          
+
           {/* path="/organizer/events/new" */}
           <Route path="events/new" element={<OrganizerEventFormPage />} />
-          
+
           {/* path="/organizer/events/:id/edit" */}
           <Route path="events/:id/edit" element={<OrganizerEventFormPage />} />
-          
+
           {/* path="/organizer/orders" */}
           <Route path="orders" element={<OrderHistoryPage />} />
 
           {/* path="/organizer/tickets" */}
           <Route path="tickets" element={<TempTicketsPage />} />
         </Route>
-        
+
         {/* --- 404 NOT FOUND --- */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

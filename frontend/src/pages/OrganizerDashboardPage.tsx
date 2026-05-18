@@ -16,7 +16,8 @@ interface EventData {
   created_at: string;
   category?: {
     id: number;
-    name: string;
+    name?: string;
+    category_name?: string; // Tambahan toleransi penamaan field kategori dari backend
   };
 }
 
@@ -47,12 +48,25 @@ export default function OrganizerDashboardPage() {
 
         if (eventsRes && eventsRes.ok) {
           const eventsData = await eventsRes.json();
-          if (eventsData.success) setEvents(eventsData.data);
+          // Perbaikan Utama: Dibuat fleksibel mengikuti arsitektur response API Laravel Anda
+          if (eventsData && Array.isArray(eventsData.data)) {
+            setEvents(eventsData.data);
+          } else if (eventsData && eventsData.success && Array.isArray(eventsData.data)) {
+            setEvents(eventsData.data);
+          } else if (Array.isArray(eventsData)) {
+            setEvents(eventsData);
+          }
         }
 
         if (summaryRes && summaryRes.ok) {
           const summaryDataRes = await summaryRes.json();
-          if (summaryDataRes.success) setSummary(summaryDataRes.data);
+          if (summaryDataRes && summaryDataRes.data) {
+            setSummary(summaryDataRes.data);
+          } else if (summaryDataRes && summaryDataRes.success) {
+            setSummary(summaryDataRes.data);
+          } else {
+            setSummary(summaryDataRes);
+          }
         } else {
           // Dummy data fallback jika endpoint /summary dari pengajar belum siap di backend
           setSummary({
@@ -80,9 +94,11 @@ export default function OrganizerDashboardPage() {
         headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
       });
       const resData = await response.json();
-      if (resData.success) {
+      if (response.ok || resData.success) {
         alert("Event berhasil dihapus.");
         setEvents(events.filter(event => event.id !== id));
+      } else {
+        alert("Gagal menghapus: " + JSON.stringify(resData.message));
       }
     } catch (error) {
       console.error("Gagal menghapus event:", error);
@@ -95,7 +111,7 @@ export default function OrganizerDashboardPage() {
 
   return (
     <>
-      {/* SUMMARY CARDS (Tugas Mandiri Endpoint /summary) */}
+      {/* SUMMARY CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
           <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Transaksi</span>
@@ -120,7 +136,7 @@ export default function OrganizerDashboardPage() {
           <p className="text-gray-500 text-sm mt-1">Kelola daftar event yang sedang atau akan berlangsung.</p>
         </div>
         <Link
-          to="/organizer/events"
+          to="/organizer/events/new"
           className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold transition flex items-center gap-2 shadow"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
@@ -166,7 +182,7 @@ export default function OrganizerDashboardPage() {
                     <td className="p-5">
                       <div className="font-bold text-slate-800 text-[15px]">{event.title}</div>
                       <div className="flex gap-2 items-center text-xs text-gray-400 font-bold uppercase mt-1">
-                        <span>{event.category?.name || "Uncategorized"}</span>
+                        <span>{event.category?.category_name || event.category?.name || "Uncategorized"}</span>
                         <span>•</span>
                         <span>{new Date(event.event_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </div>

@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * UNTUK PUBLIK / BUYER: Menampilkan list tiket umum
      */
     public function index(Request $request)
     {
+        // Dikembalikan ke umum agar buyer bisa melihat pilihan tiket saat checkout
         if ($request->has('event_id')) {
             $tickets = Ticket::where('event_id', $request->event_id)->get();
         } else {
@@ -27,11 +29,18 @@ class TicketController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ✨ UNTUK DASHBOARD ORGANIZER: Hanya menampilkan tiket dari event miliknya sendiri
      */
-    public function create()
+    public function organizerTickets()
     {
-        //
+        $tickets = Ticket::whereHas('event', function ($query) {
+            $query->where('user_id', Auth::id());
+        })->with('event')->latest()->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $tickets
+        ]);
     }
 
     /**
@@ -41,12 +50,14 @@ class TicketController extends Controller
     {
         $request->validate([
             'event_id'    => 'required|exists:events,id',
-            'ticket_type' => 'required|string|max:255', // misal: VIP 1, Regular 2
+            'ticket_type' => 'required|string|max:255', 
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:1',
         ]);
 
-        // $event = Event::where('id', $request->event_id)->where('user_id', auth()->id())->firstOrFail();
+        $event = Event::where('id', $request->event_id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail(); 
 
         $ticket = Ticket::create([
             'event_id'    => $request->event_id,
@@ -80,22 +91,16 @@ class TicketController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Ticket $ticket)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
     {
-        $ticket = Ticket::find($id);
+        $ticket = Ticket::whereHas('event', function ($query) {
+            $query->where('user_id', Auth::id());
+        })->find($id);
 
         if (!$ticket) {
-            return response()->json(['success' => false, 'message' => 'Ticket not found'], 404);
+            return response()->json(['success' => false, 'message' => 'Ticket not found or unauthorized'], 404);
         }
 
         $request->validate([
@@ -118,10 +123,12 @@ class TicketController extends Controller
      */
     public function destroy($id)
     {
-        $ticket = Ticket::find($id);
+        $ticket = Ticket::whereHas('event', function ($query) {
+            $query->where('user_id', Auth::id());
+        })->find($id);
 
         if (!$ticket) {
-            return response()->json(['success' => false, 'message' => 'Ticket not found'], 404);
+            return response()->json(['success' => false, 'message' => 'Ticket not found or unauthorized'], 404);
         }
 
         $ticket->delete();

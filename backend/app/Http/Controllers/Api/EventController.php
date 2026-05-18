@@ -12,10 +12,11 @@ use Illuminate\Support\Facades\Storage;
 class EventController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * UNTUK PUBLIK / BUYER: Menampilkan semua list event
      */
     public function index()
     {
+        // Dikembalikan seperti semula agar landing page buyer tidak kosong
         $events = Event::with(['category', 'tickets', 'user'])->latest()->get();
 
         $events->map(function ($event) {
@@ -32,11 +33,26 @@ class EventController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ✨ UNTUK DASHBOARD ORGANIZER: Hanya mengambil event miliknya sendiri
      */
-    public function create()
+    public function organizerEvents()
     {
-        //
+        $events = Event::with(['category', 'tickets', 'user'])
+            ->where('user_id', Auth::id()) // Dikunci berdasarkan ID yang login
+            ->latest()
+            ->get();
+
+        $events->map(function ($event) {
+            if ($event->image) {
+                $event->image = url('storage/' . $event->image);
+            }
+            return $event;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $events
+        ]);
     }
 
     /**
@@ -59,19 +75,19 @@ class EventController extends Controller
         }
 
         $event = Event::create([
-            'user_id'     => Auth::id(), // UBAH INI: Agar ID pengirim otomatis tercatat
+            'user_id'     => Auth::id(), 
             'category_id' => $request->category_id,
             'title'       => $request->title,
             'description' => $request->description,
             'location'    => $request->location,
             'event_date'  => $request->event_date,
             'image'       => $imagePath,
-            'status'      => $request->status ?? 'draft', // Default ke draft jika tidak diisi
+            'status'      => $request->status ?? 'draft', 
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Event created as draft.',
+            'message' => 'Event created successfully.',
             'data'    => $event
         ], 201);
     }
@@ -95,18 +111,14 @@ class EventController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Event $event)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Event $event)
     {
+        if ($event->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized Action'], 403);
+        }
+
         $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
             'title'       => 'sometimes|string|max:255',
@@ -114,16 +126,16 @@ class EventController extends Controller
             'location'    => 'sometimes',
             'event_date'  => 'sometimes|date',
             'status'      => 'sometimes|in:draft,published,cancelled',
-            'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048', // Maksimal 2MB
+            'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048', 
         ]);
 
-        // Handle Upload Image
         if ($request->hasFile('image')) {
             if ($event->image) {
                 Storage::disk('public')->delete($event->image);
             }
             $event->image = $request->file('image')->store('events', 'public');
         }
+        
         $event->update($request->all());
         return response()->json(['success' => true, 'data' => $event]);
     }
@@ -133,6 +145,14 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
+        if ($event->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized Action'], 403);
+        }
+
+        if ($event->image) {
+            Storage::disk('public')->delete($event->image);
+        }
+
         $event->delete();
         return response()->json(['success' => true, 'message' => 'Event deleted successfully']);
     }

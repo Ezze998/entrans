@@ -22,7 +22,7 @@ export default function OrganizerEventFormPage() {
     description: '',
     location: '',
     event_date: '',
-    image: null as File | null, // Standar tipe data File tunggal atau null
+    image: null as File | null,
     status: 'published',
     ticket_name: '',
     ticket_price: '',
@@ -85,7 +85,6 @@ export default function OrganizerEventFormPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 🛠️ PERBAIKAN UTAMA: Mengambil e.target.files agar berupa file gambar asli tunggal
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFormData(prev => ({ ...prev, image: e.target.files![0] }));
@@ -120,7 +119,7 @@ export default function OrganizerEventFormPage() {
         method: 'POST', 
         headers: { 
           'Authorization': `Bearer ${token}`, 
-          'Accept': 'application/json' 
+          'Accept': 'application/json'
         },
         body: submission
       });
@@ -130,29 +129,43 @@ export default function OrganizerEventFormPage() {
       if (response.ok || resData.success) {
         const createdEventId = resData.data?.id || resData.id;
 
+        // Validasi Pembuatan Tiket Utama Menggunakan FormData
         if (!isEditMode && formData.ticket_name && createdEventId) {
-          await fetch('http://localhost:8000/api/tickets', {
+          const ticketForm = new FormData();
+          ticketForm.append('event_id', String(createdEventId));
+          ticketForm.append('name', formData.ticket_name);
+          ticketForm.append('price', formData.ticket_price);
+          ticketForm.append('quantity', formData.ticket_quantity);
+
+          const ticketResponse = await fetch('http://localhost:8000/api/tickets', {
             method: 'POST',
             headers: { 
-              'Content-Type': 'application/json', 
+              'Accept': 'application/json',
               'Authorization': `Bearer ${token}` 
+              // Catatan: Content-Type sengaja dikosongkan agar browser menyusun format FormData secara otomatis
             },
-            body: JSON.stringify({
-              event_id: createdEventId,
-              name: formData.ticket_name,
-              price: Number(formData.ticket_price),    
-              quantity: Number(formData.ticket_quantity) 
-            })
+            body: ticketForm
           });
+
+          const ticketData = await ticketResponse.json();
+
+          // Jika pembuatan tiket gagal di sistem backend Laravel
+          if (!ticketResponse.ok) {
+            console.error("Gagal Menyimpan Tiket:", ticketData);
+            alert(`⚠️ Event berhasil dibuat, namun TIKET GAGAL DITERBITKAN!\nAlasan Backend: ${JSON.stringify(ticketData.errors || ticketData.message)}`);
+            setSubmitting(false);
+            return;
+          }
         }
+        
         alert(isEditMode ? "Event Berhasil Diperbarui!" : "Event & Tiket Berhasil Diterbitkan!");
         navigate('/organizer/events');
       } else {
-        alert("Gagal memproses data: " + JSON.stringify(resData.errors || resData.message));
+        alert("Gagal memproses data event: " + JSON.stringify(resData.errors || resData.message));
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kegagalan koneksi sistem backend.");
+      alert("Terjadi kegagalan koneksi sistem backend atau masalah otorisasi token.");
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +201,6 @@ export default function OrganizerEventFormPage() {
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1 text-slate-700">Poster Gambar Acara</label>
-          {/* Tambahan accept="image/*" agar browser otomatis memfilter file gambar saja saat memilih berkas */}
           <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-sm text-slate-500" />
         </div>
         <div>
