@@ -52,7 +52,13 @@ export default function OrganizerEventFormPage() {
     if (isEditMode && id && id !== 'undefined') {
       const fetchOldEventData = async () => {
         try {
-          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`);
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
+            }
+          });
           if (res.ok) {
             const resData = await res.json();
             if (resData && resData.success && resData.data) {
