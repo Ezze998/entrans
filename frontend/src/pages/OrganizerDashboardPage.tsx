@@ -40,10 +40,10 @@ export default function OrganizerDashboardPage() {
         // ✨ Perbaikan: Mengubah VITE_API_BASE_URL menjadi URL localhost agar tidak error
         const [eventsRes, summaryRes] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
           }).catch(() => null),
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/summary`, {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
           }).catch(() => null)
         ]);
 
@@ -87,7 +87,7 @@ export default function OrganizerDashboardPage() {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
       });
       const resData = await response.json();
       if (response.ok || resData.success) {
