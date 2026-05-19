@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminOrganizerController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\EventController;
@@ -28,11 +29,14 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['success' => true, 'data' => $request->user()]);
     });
 
-    // ✨ TAMBAHAN: Endpoint Khusus Dashboard Organizer (Wajib di atas apiResource)
+    // ✨ TAMBAHAN: Endpoint Khusus Dashboard Organizer & Admin
     Route::get('organizer/summary', [OrderController::class, 'summary']);
     Route::get('organizer/events', [EventController::class, 'organizerEvents']);
     Route::get('organizer/tickets', [TicketController::class, 'organizerTickets']);
     Route::get('organizer/orders', [OrderController::class, 'organizerOrders']);
+    Route::get('admin/summary', [OrderController::class, 'adminSummary']);
+    Route::get('admin/organizers', [AuthController::class, 'getOrganizers']);
+    Route::patch('/admin/organizers/{id}/toggle-status', [AdminOrganizerController::class, 'toggleStatus']);
 
     Route::apiResource('events', EventController::class)->except(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);

@@ -75,4 +75,14 @@ class AuthController extends Controller
             'message' => 'Logout success'
         ]);
     }
+
+    public function getOrganizers()
+    {
+        $organizers = User::where('role', 'organizer')->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => $organizers
+        ], 200);
+    }
 }

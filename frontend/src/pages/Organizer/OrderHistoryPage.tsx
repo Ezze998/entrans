@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// Struktur Data Laporan Penjualan untuk Organizer (Disesuaikan dengan Backend Laravel)
 interface OrderDetail {
   id: number;
   order_id: number;
@@ -10,7 +9,7 @@ interface OrderDetail {
   price: number;
   subtotal: number;
   ticket?: {
-    ticket_type: string; // Diubah ke ticket_type sesuai database Laravel
+    ticket_type: string; 
   };
 }
 
@@ -48,7 +47,7 @@ export default function OrderHistoryPage() {
         if (response.ok && resData.success) {
           setSalesReports(resData.data);
         } else {
-          setSalesReports([]); // Kosongkan jika gagal
+          setSalesReports([]);
         }
       } catch (error) {
         console.error("Gagal memuat riwayat order organizer:", error);

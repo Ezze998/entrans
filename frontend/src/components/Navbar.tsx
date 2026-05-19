@@ -101,6 +101,20 @@ export default function Navbar() {
                 </>
               )}
 
+              {/* TOMBOL KHUSUS ORGANIZER - DIPINDAHKAN SEBELUM LOGOUT */}
+              {userRole === 'admin' && (
+                <>
+                  <div className="h-5 w-[1px] bg-gray-200 hidden sm:block"></div>
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex items-center gap-1.5 text-[12px] font-black uppercase tracking-wider text-amber-600 hover:text-amber-700 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                    Admin Panel
+                  </Link>
+                </>
+              )}
+
               {/* Garis Pembatas Tipis Sebelum Logout */}
               <div className="h-5 w-[1px] bg-gray-200 hidden sm:block"></div>
 

@@ -1,4 +1,3 @@
-// src/pages/OrganizerDashboardPage.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -23,7 +22,7 @@ interface EventData {
 
 interface SummaryData {
   total_orders: number;
-  total_revenue: number; // ✨ Diselaraskan dengan Backend (total_revenue)
+  total_revenue: number;
   total_cancelled: number;
 }
 
@@ -37,7 +36,6 @@ export default function OrganizerDashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // ✨ Perbaikan: Mengubah VITE_API_BASE_URL menjadi URL localhost agar tidak error
         const [eventsRes, summaryRes] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
             headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
@@ -68,7 +66,6 @@ export default function OrganizerDashboardPage() {
             setSummary(summaryDataRes);
           }
         } else {
-          // Fallback ke 0 jika gagal mengambil data
           setSummary({ total_orders: 0, total_revenue: 0, total_cancelled: 0 });
         }
       } catch (error) {
@@ -117,7 +114,6 @@ export default function OrganizerDashboardPage() {
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
           <span className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Pendapatan</span>
-          {/* ✨ Perbaikan: Memanggil data total_revenue */}
           <span className="text-3xl font-black text-green-600">{formatRp(summary.total_revenue)}</span>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
@@ -194,16 +190,18 @@ export default function OrganizerDashboardPage() {
                       </span>
                     </td>
                     <td className="p-5 text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-2 justify-end items-center">
+                        {/* ✨ Perbaikan: Ditambahkan whitespace-nowrap agar tulisan tidak terpotong menjadi 2 baris */}
                         <Link
-                          to={`/organizer/events/${event.id}/edit`}
-                          className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold transition"
+                          to={`/organizer/events/${event.id}`}
+                          className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-sm font-bold transition whitespace-nowrap"
                         >
-                          Edit
+                          Lihat Detail
                         </Link>
+                        {/* ✨ Perbaikan: Ditambahkan whitespace-nowrap juga untuk tombol Hapus */}
                         <button
                           onClick={() => handleDeleteEvent(event.id)}
-                          className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm font-bold transition"
+                          className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm font-bold transition whitespace-nowrap"
                         >
                           Hapus
                         </button>

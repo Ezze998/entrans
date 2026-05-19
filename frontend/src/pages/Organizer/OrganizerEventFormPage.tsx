@@ -1,4 +1,3 @@
-// src/pages/OrganizerEventFormPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 
@@ -8,8 +7,10 @@ interface Category {
 }
 
 export default function OrganizerEventFormPage() {
-  const { id } = useParams<{ id: string }>(); 
-  const isEditMode = !!id;
+  const { id } = useParams<{ id: string }>();
+  
+  const isEditMode = id !== undefined && id !== 'create' && id !== 'new' && id !== 'undefined' && id !== '';
+
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
@@ -23,10 +24,7 @@ export default function OrganizerEventFormPage() {
     location: '',
     event_date: '',
     image: null as File | null,
-    status: 'published',
-    ticket_name: '',
-    ticket_price: '',
-    ticket_quantity: ''
+    status: 'published'
   });
 
   useEffect(() => {
@@ -52,10 +50,10 @@ export default function OrganizerEventFormPage() {
       }
     };
     fetchCategories();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    if (isEditMode && id && id !== 'undefined') {
+    if (isEditMode) {
       const fetchOldEventData = async () => {
         try {
           const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`, {
@@ -70,6 +68,7 @@ export default function OrganizerEventFormPage() {
             if (resData && resData.success && resData.data) {
               const ev = resData.data;
               const formattedDate = ev.event_date ? ev.event_date.substring(0, 16).replace(' ', 'T') : '';
+              
               setFormData({
                 category_id: ev.category_id ? ev.category_id.toString() : '',
                 title: ev.title || '',
@@ -77,10 +76,7 @@ export default function OrganizerEventFormPage() {
                 location: ev.location || '',
                 event_date: formattedDate,
                 image: null,
-                status: ev.status || 'published',
-                ticket_name: '',
-                ticket_price: '',
-                ticket_quantity: ''
+                status: ev.status || 'published'
               });
             }
           }
@@ -90,7 +86,7 @@ export default function OrganizerEventFormPage() {
       };
       fetchOldEventData();
     }
-  }, [id, isEditMode]);
+  }, [id, isEditMode, token]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -140,38 +136,7 @@ export default function OrganizerEventFormPage() {
       const resData = await response.json();
       
       if (response.ok || resData.success) {
-        const createdEventId = resData.data?.id || resData.id;
-
-        // Validasi Pembuatan Tiket Utama Menggunakan FormData
-        if (!isEditMode && formData.ticket_name && createdEventId) {
-          const ticketForm = new FormData();
-          ticketForm.append('event_id', String(createdEventId));
-          ticketForm.append('name', formData.ticket_name);
-          ticketForm.append('price', formData.ticket_price);
-          ticketForm.append('quantity', formData.ticket_quantity);
-
-          const ticketResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/tickets`, {
-            method: 'POST',
-            headers: { 
-              'Accept': 'application/json',
-              'Authorization': `Bearer ${token}` ,
-              'ngrok-skip-browser-warning': 'true',
-            },
-            body: ticketForm
-          });
-
-          const ticketData = await ticketResponse.json();
-
-          // Jika pembuatan tiket gagal di sistem backend Laravel
-          if (!ticketResponse.ok) {
-            console.error("Gagal Menyimpan Tiket:", ticketData);
-            alert(`⚠️ Event berhasil dibuat, namun TIKET GAGAL DITERBITKAN!\nAlasan Backend: ${JSON.stringify(ticketData.errors || ticketData.message)}`);
-            setSubmitting(false);
-            return;
-          }
-        }
-        
-        alert(isEditMode ? "Event Berhasil Diperbarui!" : "Event & Tiket Berhasil Diterbitkan!");
+        alert(isEditMode ? "Event Berhasil Diperbarui!" : "Event Berhasil Diterbitkan!");
         navigate('/organizer/events');
       } else {
         alert("Gagal memproses data event: " + JSON.stringify(resData.errors || resData.message));
@@ -221,26 +186,16 @@ export default function OrganizerEventFormPage() {
           <textarea name="description" value={formData.description} onChange={handleInputChange} required className="w-full border p-2 rounded h-24 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
         </div>
 
-        {!isEditMode ? (
-          <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200 space-y-3">
-            <h4 className="font-bold text-sm text-amber-700">🎟️ Pengaturan Tiket Utama Sekaligus</h4>
-            <p className="text-xs text-amber-600/80 -mt-1">Sistem akan otomatis mengikat tiket ini ke dalam event baru Anda.</p>
-            <input type="text" name="ticket_name" placeholder="Nama Tiket (ex: Regular Pass)" value={formData.ticket_name} onChange={handleInputChange} required className="w-full border p-2 rounded text-sm bg-white" />
-            <input type="number" name="ticket_price" placeholder="Harga Tiket Satuan (ex: 150000)" value={formData.ticket_price} onChange={handleInputChange} required className="w-full border p-2 rounded text-sm bg-white" />
-            <input type="number" name="ticket_quantity" placeholder="Kuota Tiket Tersedia (ex: 500)" value={formData.ticket_quantity} onChange={handleInputChange} required className="w-full border p-2 rounded text-sm bg-white" />
-          </div>
-        ) : (
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-slate-700">Ubah Status Event</label>
-            <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="published">Published (Tampil Umum)</option>
-              <option value="draft">Draft (Sembunyikan)</option>
-            </select>
-          </div>
-        )}
+        <div>
+          <label className="block text-sm font-semibold mb-1 text-slate-700">Ubah Status Event</label>
+          <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="published">Published (Tampil Umum)</option>
+            <option value="draft">Draft (Sembunyikan)</option>
+          </select>
+        </div>
 
         <button type="submit" disabled={submitting} className="w-full bg-slate-900 hover:bg-slate-800 text-white p-3 rounded-lg font-bold transition shadow-md">
-          {submitting ? 'Sedang Menyimpan...' : isEditMode ? 'Simpan Perubahan Event' : 'Terbitkan Event & Tiket Sekarang'}
+          {submitting ? 'Sedang Menyimpan...' : isEditMode ? 'Simpan Perubahan Event' : 'Terbitkan Event Sekarang'}
         </button>
       </form>
     </div>

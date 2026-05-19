@@ -1,4 +1,3 @@
-// src/pages/OrganizerEventsPage.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -12,16 +11,16 @@ interface EventItem {
 
 export default function OrganizerEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>(''); // State untuk fitur pencarian
   const token = localStorage.getItem('token');
 
-  // Fungsi untuk memuat ulang daftar event dari API
   const fetchEvents = async () => {
     try {
-      // 💥 PERUBAHAN DISINI: diarahkan ke endpoint khusus organizer
       const res = await fetch('http://localhost:8000/api/organizer/events', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
       if (res.ok) {
@@ -39,9 +38,8 @@ export default function OrganizerEventsPage() {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [token]);
 
-  // Fungsi Handler untuk menghapus Event berdasarkan ID
   const handleDelete = async (id: number, title: string) => {
     const isConfirmed = window.confirm(`Apakah Anda yakin ingin menghapus event "${title}"? Tindakan ini tidak dapat dibatalkan.`);
 
@@ -52,7 +50,8 @@ export default function OrganizerEventsPage() {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 
@@ -60,7 +59,6 @@ export default function OrganizerEventsPage() {
 
       if (res.ok || resData.success) {
         alert("Event berhasil dihapus!");
-        // Perbarui state lokal agar baris data langsung hilang dari tabel tanpa harus reload halaman penuh
         setEvents(prevEvents => prevEvents.filter(ev => ev.id !== id));
       } else {
         alert("Gagal menghapus data: " + (resData.message || JSON.stringify(resData.errors)));
@@ -71,16 +69,33 @@ export default function OrganizerEventsPage() {
     }
   };
 
+  // Logika filter pencarian berdasarkan judul event atau lokasi
+  const filteredEvents = events.filter(ev => 
+    ev.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ev.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-6 bg-white rounded-xl shadow border font-sans">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800">📅 Daftar Manajemen Event</h2>
           <p className="text-gray-500 text-xs mt-1">Kelola semua event yang telah Anda daftarkan di platform</p>
         </div>
-        <Link to="/organizer/events/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition shadow-sm">
-          + Buat Event Baru
-        </Link>
+        
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+          {/* Input Pencarian */}
+          <input 
+            type="text" 
+            placeholder="Cari event atau lokasi..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full md:w-64"
+          />
+          <Link to="/organizer/events/new" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition shadow-sm whitespace-nowrap text-center">
+            + Buat Event Baru
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -95,7 +110,7 @@ export default function OrganizerEventsPage() {
             </tr>
           </thead>
           <tbody>
-            {events.length > 0 ? events.map(ev => (
+            {filteredEvents.length > 0 ? filteredEvents.map(ev => (
               <tr key={ev.id} className="bg-white border-b hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 font-semibold text-gray-900">{ev.title}</td>
                 <td className="px-6 py-4 text-slate-600">{ev.location}</td>
@@ -103,15 +118,15 @@ export default function OrganizerEventsPage() {
                   {ev.event_date ? ev.event_date.substring(0, 16).replace('T', ' ') : '-'}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${ev.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
+                  <span className={`px-2 py-1 rounded-md text-xs font-bold ${ev.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
                     {ev.status}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-4">
-                    <Link to={`/organizer/events/${ev.id}/edit`} className="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
-                      Edit Data
+                    {/* Mengubah tautan menjadi View Detail */}
+                    <Link to={`/organizer/events/${ev.id}`} className="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                      Lihat Detail
                     </Link>
                     <button
                       onClick={() => handleDelete(ev.id, ev.title)}
@@ -125,7 +140,7 @@ export default function OrganizerEventsPage() {
             )) : (
               <tr>
                 <td colSpan={5} className="text-center py-12 text-gray-400 font-medium">
-                  Belum ada data event yang tersedia. Silakan buat event baru!
+                  {searchTerm ? 'Event tidak ditemukan berdasarkan pencarian Anda.' : 'Belum ada data event yang tersedia. Silakan buat event baru!'}
                 </td>
               </tr>
             )}

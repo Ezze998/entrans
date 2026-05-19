@@ -25,13 +25,16 @@ export default function LoginPage() {
       localStorage.setItem('token', res.access_token);
       localStorage.setItem('user', JSON.stringify(res.data));
 
-      if (res.data.role === 'admin' || res.data.role === 'organizer') {
+      // 🛠️ PERBAIKAN LOGIKA REDIRECT BERDASARKAN ROLE
+      if (res.data.role === 'admin') {
+        navigate('/admin');
+      } else if (res.data.role === 'organizer') {
         navigate('/organizer');
       } else {
-        navigate('/');
+        navigate('/'); // Jika user biasa/buyer, arahkan ke beranda utama
       }
       
-      // Opsional: Memaksa refresh ringan agar Navbar langsung membaca localStorage baru
+      // Memaksa refresh ringan agar Navbar langsung membaca localStorage baru
       window.dispatchEvent(new Event("storage"));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login gagal. Periksa kembali email dan password Anda.');

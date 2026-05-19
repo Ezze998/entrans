@@ -20,20 +20,33 @@ class MidtransService
     {
         $order->load('order_details.ticket', 'user');
 
-        // Build item_details from order_details
+        // 1. Build item_details dari order_details (Data Tiket)
         $itemDetails = $order->order_details->map(function ($detail) {
             return [
-                'id'       => $detail->ticket_id,
+                'id'       => 'ticket-' . $detail->ticket_id, // Tambahkan prefix agar ID unik
                 'price'    => (int) $detail->price,
-                'quantity' => $detail->quantity,
-                'name'     => $detail->ticket->ticket_type,
+                'quantity' => (int) $detail->quantity,
+                // Nama dibatasi 50 karakter oleh Midtrans, kita amankan pakai substr
+                'name'     => substr('Tiket: ' . $detail->ticket->ticket_type, 0, 50), 
             ];
         })->toArray();
 
+        // 2. ✨ BARU: Sisipkan Admin Fee ke dalam keranjang belanjaan Midtrans
+        // Pengecekan ini penting agar jika event gratis (admin fee = 0), tidak muncul di struk
+        if ($order->admin_fee > 0) {
+            $itemDetails[] = [
+                'id'       => 'admin-fee',
+                'price'    => (int) $order->admin_fee,
+                'quantity' => 1, // Kuantitas selalu 1 untuk biaya admin
+                'name'     => 'Biaya Admin & Layanan',
+            ];
+        }
+
+        // 3. Susun parameter Midtrans
         $params = [
             'transaction_details' => [
                 'order_id'     => $order->order_number,
-                'gross_amount' => (int) $order->total_amount,
+                'gross_amount' => (int) $order->total_amount, // Sekarang total uang & barang sudah seimbang
             ],
             'item_details' => $itemDetails,
             'customer_details' => [
@@ -42,6 +55,7 @@ class MidtransService
             ],
         ];
 
+        // 4. Dapatkan Token
         $snapToken = Snap::getSnapToken($params);
 
         return [

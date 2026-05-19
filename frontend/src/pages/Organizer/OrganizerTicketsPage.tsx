@@ -1,4 +1,3 @@
-// src/pages/OrganizerTicketsPage.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 

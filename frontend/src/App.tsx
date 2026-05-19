@@ -2,7 +2,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedPage from './components/ProtectedPage';
 import OrganizerLayout from './components/OrganizerLayout';
+import AdminLayout from './components/AdminLayout';
 
+// --- PAGES PUBLIK & CUSTOMER ---
 import HomePage from './pages/HomePage';
 import EventsPage from './pages/EventsPage';
 import LoginPage from './pages/LoginPage';
@@ -10,17 +12,30 @@ import RegisterPage from './pages/RegisterPage';
 import EventDetailPage from './pages/EventDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentStatusPage from './pages/PaymentStatusPage';
-import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
-import OrganizerEventsPage from './pages/OrganizerEventsPage'; // <-- Import halaman baru Anda disini
-import OrganizerEventFormPage from './pages/OrganizerEventFormPage';
-import NotFoundPage from './pages/NotFoundPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import AboutPage from './pages/About';
 import VenuesPage from './pages/VenuesPage';
+import NotFoundPage from './pages/NotFoundPage';
+
+// --- PAGES ORGANIZER ---
+import OrganizerDashboardPage from './pages/Organizer/OrganizerDashboardPage';
+import OrganizerEventsPage from './pages/Organizer/OrganizerEventsPage';
+import OrganizerEventFormPage from './pages/Organizer/OrganizerEventFormPage';
+import OrganizerEventDetailPage from './pages/Organizer/OrganizerEventDetailPage';
+import OrderHistoryPage from './pages/Organizer/OrderHistoryPage';
+import OrganizerTicketsPage from './pages/Organizer/OrganizerTicketsPage';
+import OrganizerTicketFormPage from './pages/Organizer/OrganizerTicketsFormPage';
+
+// --- PAGES ADMIN ---
+import AdminDashboardPage from './pages/Admin/AdminDashboardPage';
+import AdminCategoriesPage from './pages/Admin/AdminCategoriesPage';
+import AdminCategoriesFormPage from './pages/Admin/AdminCategoriesFormPage';
+
 import ScrollToTop from './components/ScrollToTop';
-import OrderHistoryPage from './pages/OrderHistoryPage';
-import OrganizerTicketsPage from './pages/OrganizerTicketsPage';
-import OrganizerTicketFormPage from './pages/OrganizerTicketsFormPage';
+import AdminEventsPage from './pages/Admin/AdminEventsPage';
+import AdminEventDetailPage from './pages/Admin/AdminEventDetailPage';
+import AdminTicketsPage from './pages/Admin/AdminTicketsPage';
+import AdminOrganizersPage from './pages/Admin/AdminOrganizersPage';
 
 const TempTicketsPage = () => (
   <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm font-bold text-slate-800">
@@ -56,26 +71,34 @@ export default function App() {
             </ProtectedPage>
           }
         >
-          {/* path="/organizer" (Hanya Ringkasan Pendapatan & Grafik Utama) */}
           <Route index element={<OrganizerDashboardPage />} />
-
-          <Route path="/organizer/tickets" element={<OrganizerTicketsPage />} />
           <Route path="/organizer/tickets/new" element={<OrganizerTicketFormPage />} />
-
-          {/* path="/organizer/events" (PERBAIKAN: Menggunakan komponen khusus daftar tabel) */}
           <Route path="events" element={<OrganizerEventsPage />} />
-
-          {/* path="/organizer/events/new" */}
           <Route path="events/new" element={<OrganizerEventFormPage />} />
-
-          {/* path="/organizer/events/:id/edit" */}
+          <Route path="/organizer/events/:id" element={<OrganizerEventDetailPage />} />
           <Route path="events/:id/edit" element={<OrganizerEventFormPage />} />
-
-          {/* path="/organizer/orders" */}
           <Route path="orders" element={<OrderHistoryPage />} />
-
-          {/* path="/organizer/tickets" */}
+          <Route path="/organizer/tickets" element={<OrganizerTicketsPage />} />
           <Route path="tickets" element={<TempTicketsPage />} />
+        </Route>
+
+        {/* --- RUTE KHUSUS ADMIN PANEL --- */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedPage requiredRole="admin">
+              <AdminLayout />
+            </ProtectedPage>
+          }
+        >
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="categories/new" element={<AdminCategoriesFormPage />} />
+          <Route path="events" element={<AdminEventsPage />} />
+          <Route path="events/:id" element={<AdminEventDetailPage />} />
+          <Route path="tickets" element={<AdminTicketsPage />} />
+          <Route path="organizers" element={<AdminOrganizersPage />} />
         </Route>
 
         {/* --- 404 NOT FOUND --- */}
