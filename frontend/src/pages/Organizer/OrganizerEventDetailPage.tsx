@@ -33,7 +33,7 @@ export default function OrganizerEventDetailPage() {
     const fetchEventDetails = async () => {
       try {
         // 1. Fetch Data Event
-        const eventRes = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${id}`, {
+        const eventRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
@@ -52,7 +52,7 @@ export default function OrganizerEventDetailPage() {
         }
 
         // 2. Fetch Data Tiket (Sebagai fallback jika API event tidak mengembalikan data tiket)
-        const ticketRes = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets`, {
+        const ticketRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/tickets`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',

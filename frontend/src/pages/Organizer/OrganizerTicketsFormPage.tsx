@@ -22,7 +22,7 @@ export default function OrganizerTicketFormPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/organizer/events`, {
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -58,7 +58,7 @@ export default function OrganizerTicketFormPage() {
     submissionData.append('stock', formData.stock);
 
     try { 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/tickets`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

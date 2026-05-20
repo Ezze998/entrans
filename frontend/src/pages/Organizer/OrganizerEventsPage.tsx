@@ -16,7 +16,7 @@ export default function OrganizerEventsPage() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/organizer/events`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -46,7 +46,7 @@ export default function OrganizerEventsPage() {
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
