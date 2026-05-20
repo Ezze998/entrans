@@ -11,12 +11,12 @@ interface EventItem {
 
 export default function OrganizerEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>(''); // State untuk fitur pencarian
+  const [searchTerm, setSearchTerm] = useState<string>(''); 
   const token = localStorage.getItem('token');
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/organizer/events', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/organizer/events`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
@@ -46,7 +46,7 @@ export default function OrganizerEventsPage() {
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/events/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

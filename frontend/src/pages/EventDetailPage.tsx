@@ -40,7 +40,7 @@ export default function EventDetailPage() {
       ?.filter(t => (quantities[t.id] || 0) > 0)
       .map(t => ({
         ticket_id: t.id,
-        ticket_type: t.ticket_type, // Pastikan ini sesuai dengan field di database
+        ticket_type: t.ticket_type, 
         price: t.price,
         qty: quantities[t.id]
       }));
@@ -50,7 +50,6 @@ export default function EventDetailPage() {
       return;
     }
 
-    // Mengirim data ke route /checkout melalui state
     navigate('/checkout', {
       state: {
         event,
@@ -163,7 +162,6 @@ export default function EventDetailPage() {
 
                         <button
                           onClick={() => updateQty(ticket.id, 1)}
-                          // CEGAH PEMBELIAN MELEBIHI STOK
                           disabled={(quantities[ticket.id] || 0) >= ticket.stock}
                           className={`px-3 py-1 font-bold ${(quantities[ticket.id] || 0) >= ticket.stock ? 'text-gray-300' : 'text-gray-500 hover:text-black'}`}
                         >+</button>

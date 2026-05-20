@@ -10,7 +10,6 @@ export default function EventsPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // State untuk filter
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [priceFilter, setPriceFilter] = useState<string>('all'); // State baru untuk filter harga
@@ -18,7 +17,6 @@ export default function EventsPage() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // Fetch data events dan categories secara paralel
                 const [eventsResponse, categoriesResponse] = await Promise.all([
                     apiFetch<{ data: Event[] }>('/events'),
                     apiFetch<{ data: Category[] }>('/categories')
@@ -100,10 +98,10 @@ export default function EventsPage() {
                 {/* ================= CONTROLS SECTION (Search, Price & Categories) ================= */}
                 <section className="max-w-[1280px] mx-auto px-8 pt-12">
                     <div className="flex flex-col gap-6 pb-8 border-b border-gray-200/60">
-                        
+
                         {/* Container Search & Price Dropdown */}
                         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                            
+
                             {/* Search Input */}
                             <div className="relative flex-grow max-w-md bg-white rounded-xl border border-gray-200 shadow-sm focus-within:border-black transition-colors">
                                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 select-none">
@@ -145,8 +143,8 @@ export default function EventsPage() {
                             <button
                                 onClick={() => setSelectedCategory('all')}
                                 className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${selectedCategory === 'all'
-                                        ? 'bg-black text-white border-black shadow-md'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                    ? 'bg-black text-white border-black shadow-md'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                                     }`}
                             >
                                 All Categories
@@ -157,8 +155,8 @@ export default function EventsPage() {
                                     key={category.id}
                                     onClick={() => setSelectedCategory(String(category.id))}
                                     className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${selectedCategory === String(category.id)
-                                            ? 'bg-black text-white border-black shadow-md'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                        ? 'bg-black text-white border-black shadow-md'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                                         }`}
                                 >
                                     {category.category_name}
@@ -191,7 +189,6 @@ export default function EventsPage() {
                                     ? Math.min(...event.tickets.map(t => t.price))
                                     : null;
 
-                                // Menggunakan fallback image jika data image dari backend kosong
                                 const eventImage = (event as any).image || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=600";
 
                                 return (
@@ -249,7 +246,7 @@ export default function EventsPage() {
                                         </div>
                                     </Link>
                                 );
-							})}
+                            })}
                         </div>
                     )}
                 </section>

@@ -21,7 +21,6 @@ export default function AdminCategoriesFormPage() {
                     'Accept': 'application/json',
                     'ngrok-skip-browser-warning': 'true'
                 },
-                // ✨ SUDAH DIPERBAIKI: Menggunakan parameter category_name sesuai validasi Laravel
                 body: JSON.stringify({ category_name: name })
             });
 

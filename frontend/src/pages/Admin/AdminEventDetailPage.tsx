@@ -19,7 +19,6 @@ interface EventDetail {
     category_id: number;
     image?: string;
     tickets?: Ticket[];
-    // MENAMBAHKAN DATA USER / ORGANIZER (Sesuaikan dengan payload API-mu)
     user?: {
         id: number;
         name: string;

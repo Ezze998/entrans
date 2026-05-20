@@ -5,19 +5,18 @@ interface OrganizerItem {
     id: number;
     name: string;
     email: string;
-    status?: 'active' | 'suspended'; // Menambahkan property status akun
+    status?: 'active' | 'suspended'; 
     created_at?: string;
 }
 
 export default function AdminOrganizersPage() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate(); // Untuk navigasi ke filter event
+    const navigate = useNavigate();
     const [organizers, setOrganizers] = useState<OrganizerItem[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '');
     const [loading, setLoading] = useState<boolean>(true);
     const token = localStorage.getItem('token');
 
-    // Menghubungkan kolom pencarian input dengan nilai query URL jika ada perubahan
     useEffect(() => {
         const querySearch = searchParams.get('search');
         if (querySearch) {
@@ -63,7 +62,6 @@ export default function AdminOrganizersPage() {
         }
     };
 
-    // Fungsi untuk mengubah status blokir/suspend akun organizer
     const handleToggleStatus = async (id: number, currentStatus: string) => {
         const nextStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
         const confirmMsg = currentStatus === 'suspended' 
@@ -73,7 +71,6 @@ export default function AdminOrganizersPage() {
         if (!window.confirm(confirmMsg)) return;
 
         try {
-            // Jalankan hit API patch untuk mengubah status di backend
             const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/organizers/${id}/toggle-status`, {
                 method: 'PATCH',
                 headers: {
@@ -85,7 +82,6 @@ export default function AdminOrganizersPage() {
             });
 
             if (res.ok) {
-                // Perbarui state secara lokal agar UI langsung berubah tanpa reload halaman
                 setOrganizers(prev => prev.map(org => 
                     org.id === id ? { ...org, status: nextStatus as 'active' | 'suspended' } : org
                 ));
@@ -156,7 +152,7 @@ export default function AdminOrganizersPage() {
                     </thead>
                     <tbody>
                         {filteredOrganizers.length > 0 ? filteredOrganizers.map(org => {
-                            const currentStatus = org.status || 'active'; // Fallback jika default database aktif
+                            const currentStatus = org.status || 'active'; 
                             return (
                                 <tr key={org.id} className="bg-white border-b hover:bg-slate-50/80 transition-colors">
                                     <td className="px-6 py-4 text-slate-400 font-mono text-xs">#{org.id}</td>

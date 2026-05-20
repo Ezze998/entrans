@@ -33,7 +33,6 @@ export default function AdminDashboardPage() {
     const fetchAdminData = async () => {
       try {
         const [summaryRes, categoriesRes] = await Promise.all([
-          // ✨ DIUBAH KEMBALI KE: /api/admin/summary (mengarah ke fungsi adminSummary)
           fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/summary`, {
             headers: {
               'Authorization': `Bearer ${token}`,

@@ -19,8 +19,7 @@ export default function OrganizerTicketsPage() {
 
     const fetchTickets = async () => {
         try {
-            // 💥 PERUBAHAN DISINI: diarahkan ke endpoint khusus organizer
-            const res = await fetch('http://localhost:8000/api/organizer/tickets', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/organizer/tickets`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
@@ -48,7 +47,7 @@ export default function OrganizerTicketsPage() {
         if (!window.confirm('Apakah Anda yakin ingin menghapus tiket ini?')) return;
 
         try {
-            const res = await fetch(`http://localhost:8000/api/tickets/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

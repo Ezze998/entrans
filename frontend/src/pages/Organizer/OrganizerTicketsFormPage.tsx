@@ -19,12 +19,10 @@ export default function OrganizerTicketFormPage() {
     stock: ''
   });
 
-  // Fetch daftar event untuk dropdown
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // ✨ PERBAIKAN: Diubah ke endpoint khusus organizer agar hanya memuat event miliknya sendiri
-        const res = await fetch('http://localhost:8000/api/organizer/events', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/organizer/events`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -59,8 +57,8 @@ export default function OrganizerTicketFormPage() {
     submissionData.append('price', formData.price);
     submissionData.append('stock', formData.stock);
 
-    try {
-      const response = await fetch('http://localhost:8000/api/tickets', {
+    try { 
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -73,7 +71,7 @@ export default function OrganizerTicketFormPage() {
 
       if (response.ok || resData.success) {
         alert("Tiket Berhasil Diterbitkan!");
-        navigate('/organizer/tickets'); // Kembali ke halaman manajemen tiket
+        navigate('/organizer/tickets');
       } else {
         alert("Gagal membuat tiket: " + JSON.stringify(resData.errors || resData.message));
       }

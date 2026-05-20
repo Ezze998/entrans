@@ -67,7 +67,6 @@ export default function AdminEventsPage() {
         }
     };
 
-    // MODIFIKASI: Hanya masukkan event yang statusnya 'published'
     const filteredEvents = events.filter(ev =>
         ev.status === 'published' && (
             ev.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

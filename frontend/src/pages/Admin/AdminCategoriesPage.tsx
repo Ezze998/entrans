@@ -1,4 +1,3 @@
-// src/pages/Admin/AdminCategoriesPage.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 

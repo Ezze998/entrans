@@ -8,7 +8,6 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Mengambil data tiket yang dipilih dari state navigasi (EventDetailPage)
   const { event, selectedTickets, total } = location.state || {};
 
   const [customerData, setCustomerData] = useState({
@@ -18,7 +17,6 @@ export default function CheckoutPage() {
   });
   const [loading, setLoading] = useState(false);
 
-  // Jika tidak ada data checkout (akses langsung URL), balikkan ke home
   if (!event || !selectedTickets) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -39,7 +37,7 @@ export default function CheckoutPage() {
         event_id: event.id,
         items: selectedTickets.map((t: any) => ({
           ticket_id: t.ticket_id,
-          quantity: t.qty // Di backend mintanya 'quantity', bukan 'qty'
+          quantity: t.qty 
         }))
       };
 
