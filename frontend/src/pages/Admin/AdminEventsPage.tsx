@@ -9,10 +9,31 @@ interface EventItem {
     status: string;
 }
 
+// State untuk konfigurasi custom modal
+interface ModalState {
+    isOpen: boolean;
+    type: 'confirm' | 'force_warning' | 'status_info';
+    title: string;
+    message: string;
+    eventId: number | null;
+    eventTitle: string;
+    isSuccess?: boolean;
+}
+
 export default function AdminEventsPage() {
     const [events, setEvents] = useState<EventItem[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const token = localStorage.getItem('token');
+
+    // State untuk mengontrol kemunculan modal kustom
+    const [modal, setModal] = useState<ModalState>({
+        isOpen: false,
+        type: 'confirm',
+        title: '',
+        message: '',
+        eventId: null,
+        eventTitle: '',
+    });
 
     const fetchEvents = async () => {
         try {
@@ -40,12 +61,34 @@ export default function AdminEventsPage() {
         fetchEvents();
     }, [token]);
 
-    const handleDelete = async (id: number, title: string) => {
-        const isConfirmed = window.confirm(`[MODERASI ADMIN] Apakah Anda yakin ingin menghapus event "${title}"? Tindakan ini tidak dapat dibatalkan.`);
-        if (!isConfirmed) return;
+    // Triger awal ketika tombol "Hapus" di tabel diklik
+    const openDeleteConfirmation = (id: number, title: string) => {
+        setModal({
+            isOpen: true,
+            type: 'confirm',
+            title: 'Konfirmasi Penghapusan',
+            message: `Apakah Anda yakin ingin menghapus event "${title}"? Tindakan awal ini akan memeriksa dependensi data sistem keuangan terlebih dahulu.`,
+            eventId: id,
+            eventTitle: title
+        });
+    };
+
+    // Fungsi inti eksekusi penghapusan (Mendukung Penghapusan Normal & Paksa)
+    const executeDelete = async (isForceDelete = false) => {
+        if (!modal.eventId) return;
+
+        // Ambil ID sebelum modal ditutup sementara untuk transisi state
+        const targetId = modal.eventId;
+        const targetTitle = modal.eventTitle;
+
+        // Tutup modal aktif saat ini
+        setModal(prev => ({ ...prev, isOpen: false }));
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/${id}`, {
+            // Jika isForceDelete sejati, tambahkan query string ?force=true ke endpoint backend
+            const url = `${import.meta.env.VITE_API_BASE_URL}/api/events/${targetId}${isForceDelete ? '?force=true' : ''}`;
+
+            const res = await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -53,17 +96,58 @@ export default function AdminEventsPage() {
                     'ngrok-skip-browser-warning': 'true',
                 }
             });
+
             const resData = await res.json();
 
             if (res.ok || resData.success) {
-                alert("Event berhasil dihapus oleh Admin!");
-                setEvents(prevEvents => prevEvents.filter(ev => ev.id !== id));
+                // Berhasil Dihapus
+                setEvents(prevEvents => prevEvents.filter(ev => ev.id !== targetId));
+                setModal({
+                    isOpen: true,
+                    type: 'status_info',
+                    title: 'Berhasil',
+                    message: isForceDelete
+                        ? `Event "${targetTitle}" beserta riwayat transaksi pembelinya berhasil dihapus paksa.`
+                        : `Event "${targetTitle}" berhasil dihapus dari sistem.`,
+                    eventId: null,
+                    eventTitle: '',
+                    isSuccess: true
+                });
+            } else if (res.status === 400 && resData.has_transactions) {
+                // REAKSI INTERSEPT: Terdeteksi transaksi terjual dari backend
+                setTimeout(() => {
+                    setModal({
+                        isOpen: true,
+                        type: 'force_warning',
+                        title: '⚠️ Peringatan: Transaksi Aktif Terdeteksi',
+                        message: `Event "${targetTitle}" tidak bisa dihapus secara reguler karena sudah ada user yang membeli tiket. Menghapus paksa tindakan ini akan memusnahkan data finansial & logistik tiket terikat secara permanen! Apakah Anda tetap ingin melaksanakannya?`,
+                        eventId: targetId,
+                        eventTitle: targetTitle
+                    });
+                }, 200);
             } else {
-                alert("Gagal menghapus data: " + (resData.message || JSON.stringify(resData.errors)));
+                // Kegagalan Validasi Lainnya (Misal Hak Akses Berubah)
+                setModal({
+                    isOpen: true,
+                    type: 'status_info',
+                    title: 'Gagal Menghapus',
+                    message: resData.message || 'Terjadi kesalahan hak otorisasi sistem.',
+                    eventId: null,
+                    eventTitle: '',
+                    isSuccess: false
+                });
             }
         } catch (error) {
             console.error("Error saat menghapus event:", error);
-            alert("Terjadi kegagalan koneksi sistem backend saat mencoba menghapus data.");
+            setModal({
+                isOpen: true,
+                type: 'status_info',
+                title: 'Gangguan Koneksi',
+                message: 'Gagal menghubungi server mikro backend. Periksa jaringan Anda.',
+                eventId: null,
+                eventTitle: '',
+                isSuccess: false
+            });
         }
     };
 
@@ -75,7 +159,7 @@ export default function AdminEventsPage() {
     );
 
     return (
-        <div className="p-6 bg-white rounded-xl shadow border font-sans">
+        <div className="p-6 bg-white rounded-xl shadow border font-sans relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800">📅 Pengawasan Seluruh Event</h2>
@@ -123,7 +207,7 @@ export default function AdminEventsPage() {
                                             Lihat Detail
                                         </Link>
                                         <button
-                                            onClick={() => handleDelete(ev.id, ev.title)}
+                                            onClick={() => openDeleteConfirmation(ev.id, ev.title)}
                                             className="text-red-600 hover:text-red-800 font-semibold hover:underline bg-transparent border-none cursor-pointer"
                                         >
                                             Hapus
@@ -141,6 +225,76 @@ export default function AdminEventsPage() {
                     </tbody>
                 </table>
             </div>
+
+            {/* ========================================================= */}
+            {/* COMPONENT MODAL CUSTOM TAILWIND (REPLACING NATIVE ALERTS) */}
+            {/* ========================================================= */}
+            {modal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fadeIn">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-100 overflow-hidden transform transition-all scale-100">
+
+                        {/* Header Modal */}
+                        <div className={`p-4 border-b font-bold text-base flex items-center gap-2 ${modal.type === 'force_warning' ? 'bg-red-50 text-red-700' :
+                                modal.type === 'status_info' ? (modal.isSuccess ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700') :
+                                    'bg-slate-50 text-slate-800'
+                            }`}>
+                            {modal.title}
+                        </div>
+
+                        {/* Body Isi Pesan */}
+                        <div className="p-5 text-sm text-slate-600 leading-relaxed">
+                            {modal.message}
+                        </div>
+
+                        {/* Footer Navigasi Kontrol Aksi Tombol */}
+                        <div className="p-4 bg-slate-50 border-t flex justify-end gap-3">
+                            {modal.type === 'confirm' && (
+                                <>
+                                    <button
+                                        onClick={() => setModal(p => ({ ...p, isOpen: false }))}
+                                        className="px-4 py-2 text-xs font-semibold text-slate-500 bg-white border rounded-lg hover:bg-slate-100 transition-all"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={() => executeDelete(false)}
+                                        className="px-4 py-2 text-xs font-semibold text-white bg-slate-800 rounded-lg hover:bg-slate-900 shadow transition-all"
+                                    >
+                                        Lanjutkan Hapus
+                                    </button>
+                                </>
+                            )}
+
+                            {modal.type === 'force_warning' && (
+                                <>
+                                    <button
+                                        onClick={() => setModal(p => ({ ...p, isOpen: false }))}
+                                        className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border rounded-lg hover:bg-slate-100 transition-all"
+                                    >
+                                        Batalkan, Jangan Hapus
+                                    </button>
+                                    <button
+                                        onClick={() => executeDelete(true)} // Parameter true memicu ?force=true
+                                        className="px-4 py-2 text-xs font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-md hover:shadow-red-200 transition-all font-bold"
+                                    >
+                                        Ya, Saya Mau Hapus Paksa!
+                                    </button>
+                                </>
+                            )}
+
+                            {modal.type === 'status_info' && (
+                                <button
+                                    onClick={() => setModal(p => ({ ...p, isOpen: false }))}
+                                    className={`px-5 py-2 text-xs font-semibold text-white rounded-lg shadow transition-all ${modal.isSuccess ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-500 hover:bg-amber-600'
+                                        }`}
+                                >
+                                    Selesai
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

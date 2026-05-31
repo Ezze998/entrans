@@ -35,7 +35,7 @@ export default function AdminCategoriesPage() {
         if (!window.confirm("Hapus kategori ini? Tindakan ini dapat memicu error jika ada data event yang menggunakannya.")) return;
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/categories/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json', 'ngrok-skip-browser-warning': 'true' }
             });

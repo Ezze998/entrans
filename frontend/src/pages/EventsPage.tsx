@@ -41,7 +41,7 @@ export default function EventsPage() {
     const filteredEvents = events.filter((event) => {
         // 1. Filter Kategori
         const matchesCategory =
-            selectedCategory === 'all' ||
+            selectedCategory === 'all' || 
             event.category_id === Number(selectedCategory);
 
         // 2. Filter Search
@@ -63,7 +63,7 @@ export default function EventsPage() {
             matchesPrice = lowestPrice !== null && lowestPrice >= 200000 && lowestPrice <= 500000;
         } else if (priceFilter === 'above-500k') {
             matchesPrice = lowestPrice !== null && lowestPrice > 500000;
-        }
+        } 
 
         return matchesCategory && matchesSearch && matchesPrice;
     });

@@ -32,9 +32,6 @@ class EventController extends Controller
         ]);
     }
 
-    /**
-     * ✨ UNTUK DASHBOARD ORGANIZER: Hanya mengambil event miliknya sendiri
-     */
     public function organizerEvents()
     {
         $events = Event::with(['category', 'tickets', 'user'])
@@ -75,14 +72,14 @@ class EventController extends Controller
         }
 
         $event = Event::create([
-            'user_id'     => Auth::id(), 
+            'user_id'     => Auth::id(),
             'category_id' => $request->category_id,
             'title'       => $request->title,
             'description' => $request->description,
             'location'    => $request->location,
             'event_date'  => $request->event_date,
             'image'       => $imagePath,
-            'status'      => $request->status ?? 'draft', 
+            'status'      => $request->status ?? 'draft',
         ]);
 
         return response()->json([
@@ -115,7 +112,7 @@ class EventController extends Controller
      */
     public function update(Request $request, Event $event)
     {
-        if ($event->user_id !== Auth::id()) {
+        if ($event->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized Action'], 403);
         }
 
@@ -126,7 +123,7 @@ class EventController extends Controller
             'location'    => 'sometimes',
             'event_date'  => 'sometimes|date',
             'status'      => 'sometimes|in:draft,published,cancelled',
-            'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048', 
+            'image'       => 'sometimes|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -135,7 +132,7 @@ class EventController extends Controller
             }
             $event->image = $request->file('image')->store('events', 'public');
         }
-        
+
         $event->update($request->all());
         return response()->json(['success' => true, 'data' => $event]);
     }
@@ -143,17 +140,41 @@ class EventController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Event $event)
+    public function destroy(Request $request, Event $event)
     {
-        if ($event->user_id !== Auth::id()) {
+        if ($event->user_id !== Auth::id() && Auth::user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized Action'], 403);
         }
 
-        if ($event->image) {
-            Storage::disk('public')->delete($event->image);
+        $hasTransactions = DB::table('orders')
+            ->whereIn('event_id', DB::table('tickets')->where('event_id', $event->id)->pluck('id'))
+            ->exists();
+
+        if ($hasTransactions && !$request->query('force')) {
+            return response()->json([
+                'success' => false,
+                'has_transactions' => true,
+                'message' => 'Event ini tidak bisa dihapus secara normal karena tiketnya telah dibeli oleh pengunjung.'
+            ], 400);
         }
 
-        $event->delete();
-        return response()->json(['success' => true, 'message' => 'Event deleted successfully']);
+        DB::transaction(function () use ($event) {
+            $orderIds = DB::table('orders')->whereIn('event_id', [$event->id])->pluck('id');
+
+            DB::table('payments')->whereIn('order_id', $orderIds)->delete();
+            DB::table('orders')->whereIn('event_id', [$event->id])->delete();
+            DB::table('tickets')->where('event_id', $event->id)->delete();
+
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+
+            $event->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Event beserta seluruh data transaksi terkait berhasil dibersihkan dari sistem.'
+        ]);
     }
 }

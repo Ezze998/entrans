@@ -50,14 +50,14 @@ class TicketController extends Controller
     {
         $request->validate([
             'event_id'    => 'required|exists:events,id',
-            'ticket_type' => 'required|string|max:255', 
+            'ticket_type' => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:1',
         ]);
 
         $event = Event::where('id', $request->event_id)
             ->where('user_id', Auth::id())
-            ->firstOrFail(); 
+            ->firstOrFail();
 
         $ticket = Ticket::create([
             'event_id'    => $request->event_id,
@@ -123,14 +123,23 @@ class TicketController extends Controller
      */
     public function destroy($id)
     {
-        $ticket = Ticket::whereHas('event', function ($query) {
-            $query->where('user_id', Auth::id());
-        })->find($id);
+        $user = Auth::user();
 
+        // 1. Cek Hak Akses: Jika Admin, bypass pencarian langsung. Jika Organizer, filter berdasarkan user_id.
+        if ($user->role === 'admin') {
+            $ticket = Ticket::find($id);
+        } else {
+            $ticket = Ticket::whereHas('event', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->find($id);
+        }
+
+        // 2. Jika tiket tidak ditemukan atau bukan milik organizer yang bersangkutan
         if (!$ticket) {
             return response()->json(['success' => false, 'message' => 'Ticket not found or unauthorized'], 404);
         }
 
+        // 3. Proses hapus tiket
         $ticket->delete();
 
         return response()->json([
