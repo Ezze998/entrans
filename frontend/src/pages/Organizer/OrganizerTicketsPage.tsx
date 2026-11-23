@@ -22,7 +22,8 @@ export default function OrganizerTicketsPage() {
             const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/tickets`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true',
                 }
             });
             const data = await res.json();

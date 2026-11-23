@@ -13,8 +13,8 @@ class EventSeeder extends Seeder
     public function run(): void
     {
         $event = \App\Models\Event::create([
-            'user_id' => 1, // ID Organizer tadi
-            'category_id' => 1, // Music
+            'user_id' => 1, 
+            'category_id' => 1,
             'title' => 'Neon Nights Music Fest',
             'description' => 'Experience the best electronic music in town.',
             'location' => 'Jakarta International Stadium',

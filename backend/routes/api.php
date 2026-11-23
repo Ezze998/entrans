@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['success' => true, 'data' => $request->user()]);
     });
 
-    // ✨ TAMBAHAN: Endpoint Khusus Dashboard Organizer & Admin
+    // TAMBAHAN: Endpoint Khusus Dashboard Organizer & Admin
     Route::get('organizer/summary', [OrderController::class, 'summary']);
     Route::get('organizer/events', [EventController::class, 'organizerEvents']);
     Route::get('organizer/tickets', [TicketController::class, 'organizerTickets']);

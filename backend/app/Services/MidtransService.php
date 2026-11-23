@@ -23,10 +23,9 @@ class MidtransService
         // 1. Build item_details dari order_details (Data Tiket)
         $itemDetails = $order->order_details->map(function ($detail) {
             return [
-                'id'       => 'ticket-' . $detail->ticket_id, // Tambahkan prefix agar ID unik
+                'id'       => 'ticket-' . $detail->ticket_id, 
                 'price'    => (int) $detail->price,
                 'quantity' => (int) $detail->quantity,
-                // Nama dibatasi 50 karakter oleh Midtrans, kita amankan pakai substr
                 'name'     => substr('Tiket: ' . $detail->ticket->ticket_type, 0, 50), 
             ];
         })->toArray();

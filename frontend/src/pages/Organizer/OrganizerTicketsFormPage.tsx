@@ -25,7 +25,8 @@ export default function OrganizerTicketFormPage() {
         const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/organizer/events`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
           }
         });
         const data = await res.json();
