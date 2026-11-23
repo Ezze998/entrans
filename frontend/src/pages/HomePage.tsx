@@ -8,6 +8,7 @@ import type { Event } from '../types';
 export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -20,7 +21,8 @@ export default function HomePage() {
           setEvents([]);
         }
       } catch (e) { 
-        console.error(e); 
+        console.error(e);
+        setLoadError(e instanceof Error ? e.message : 'Gagal memuat event.');
       } finally { 
         setLoading(false); 
       }
@@ -87,6 +89,11 @@ export default function HomePage() {
             {loading ? (
               <div className="flex justify-center items-center py-32">
                 <span className="loading loading-spinner loading-lg text-black"></span>
+              </div>
+            ) : loadError ? (
+              <div role="alert" className="text-center py-24 bg-white rounded-3xl border border-red-100 p-8 shadow-sm">
+                <h4 className="text-lg font-bold text-red-700 mb-2">Events could not be loaded</h4>
+                <p className="text-gray-500 text-sm">{loadError}</p>
               </div>
             ) : events.length === 0 ? (
               <div className="text-center py-24 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
