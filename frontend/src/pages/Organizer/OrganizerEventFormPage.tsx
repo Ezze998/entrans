@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 
 interface Category {
   id: number;
@@ -15,6 +16,8 @@ export default function OrganizerEventFormPage() {
   const token = localStorage.getItem('token');
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
+  const [categoryError, setCategoryError] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const [formData, setFormData] = useState({
@@ -29,28 +32,19 @@ export default function OrganizerEventFormPage() {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoryError('');
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
-          }
-        });
-        if (res.ok) {
-          const resData = await res.json();
-          if (resData && Array.isArray(resData.data)) {
-            setCategories(resData.data);
-          } else if (Array.isArray(resData)) {
-            setCategories(resData);
-          }
-        }
-      } catch (e) {
-        console.error("Gagal memuat kategori:", e);
+        const response = await apiFetch<{ success: boolean; data: Category[] }>('/categories');
+        setCategories(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        setCategoryError(error instanceof Error ? error.message : 'Gagal memuat kategori.');
+      } finally {
+        setCategoriesLoading(false);
       }
     };
-    fetchCategories();
-  }, [token]);
+    void fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (isEditMode) {
@@ -162,12 +156,14 @@ export default function OrganizerEventFormPage() {
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1 text-slate-700">Kategori Event</label>
-          <select name="category_id" value={formData.category_id} onChange={handleInputChange} required className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            <option value="">-- Pilih Kategori --</option>
-            {Array.isArray(categories) && categories.map(cat => (
+          <select name="category_id" value={formData.category_id} onChange={handleInputChange} required disabled={categoriesLoading || categories.length === 0} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100">
+            <option value="">{categoriesLoading ? 'Memuat kategori...' : categories.length === 0 ? 'Kategori belum tersedia' : '-- Pilih Kategori --'}</option>
+            {categories.map(cat => (
               <option key={cat.id} value={cat.id}>{cat.category_name}</option>
             ))}
           </select>
+          {categoryError && <p role="alert" className="mt-2 text-sm text-red-600">{categoryError}</p>}
+          {!categoriesLoading && !categoryError && categories.length === 0 && <p className="mt-2 text-sm text-amber-600">Belum ada kategori. Hubungi admin untuk menambahkan kategori.</p>}
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1 text-slate-700">Lokasi / Nama Venue</label>
